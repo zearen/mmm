@@ -1,37 +1,46 @@
+#ifndef _nbt_tree
+#define _nbt_tree
+
 #include <string.h>
+#include <deque>
+#include "nbt_defines.h"
+
+
 
 using namespace std;
 
-typedef unsigned char byte;
 
 class NBT_Tag {
     private:
-        char *name;
+        NBT_StringHolder *_name;
+        TagType _type;
     public:
-        NBT_Tag(char *name);
+        NBT_Tag(NBT_StringHolder *name, TagType tagType);
         ~NBT_Tag();
-        char *getName();
-        byte getType()=0;
-        bool isType(byte tagType2);
+        NBT_StringHolder* GetName();
+        void SetName(NBT_StringHolder *name);
+        TagType getType();
+        bool isType(TagType tagType2);
 };
 
-class TAG_End : NBT_Tag {
-    public
-        NBTTag();
+class TAG_End : NBT_Tag
+{
+    public:
+    TAG_End();
 };
 
-template <class E, byte tagVal>
-class TAG_Atom() : NBT_Tag {
+template <class E, TagType tagVal>
+class TAG_Atom : public NBT_Tag {
     private:
         E payload;
     public:
-        byte getType() {
+        TagType getType() {
             return tagVal;
         }
         
         // 
         TAG_Atom(char* newName, E newPayload) {
-            NBT_Tag(newName);
+            NBT_Tag(newName, tagVal);
             setPayload(newPayload);
         }
             
@@ -44,32 +53,40 @@ class TAG_Atom() : NBT_Tag {
         }
 };
 
+
 // We may need a template specialization for TAG_String
+typedef TAG_Atom<NBT_BYTE, TAGTYPE_BYTE> TAG_Byte;
+typedef TAG_Atom<NBT_BYTE *, TAGTYPE_BYTE_ARRAY> TAG_Byte_Array;
+typedef TAG_Atom<NBT_DOUBLE, TAGTYPE_DOUBLE> TAG_Double;
+typedef TAG_Atom<NBT_FLOAT, TAGTYPE_FLOAT> TAG_Float;
+typedef TAG_Atom<NBT_INT, TAGTYPE_INT> TAG_Int;
+typedef TAG_Atom<NBT_LONG, TAGTYPE_LONG> TAG_Long;
+typedef TAG_Atom<NBT_SHORT, TAGTYPE_SHORT> TAG_Short;
+typedef TAG_Atom<NBT_StringHolder, TAGTYPE_STRING> TAG_String;
 
-typedef TAG_Atom<byte, 1> TAG_Byte;
-//...
-typedef TAG_Atom<char*, 8> TAG_String;
-
-class TAG_List : NBT_Tag {
+class TAG_List : public NBT_Tag {
     private:
-        byte tagType;
+        TagType itemType;
         int len;
-        NBT_Tag **list;
+        NBT_Tag **items;
     public:
-        TAG_List(char* newName, byte tagVal, int length);
+        TAG_List(char* newName, NBT_BYTE itemType, int length);
         ~TAG_List();
         NBT_Tag *operator [] (int index);
         int length();
 };
 
 class FieldNotFoundError {};
-class TAG_Compound : NBT_Tag {
+class TAG_Compound : public NBT_Tag {
     private:
-        deque<*NBT_Tag> fields;
+        deque<NBT_Tag> fields;
     public:
-        ~TAG_Compound;
+        TAG_Compound();
+        ~TAG_Compound();
         NBT_Tag *operator[] (char *field);
         void add(NBT_Tag *newItem);
 };
 
-NBT_Tag *parseNBT(byte *NBT_Data);
+//NBT_Tag *parseNBT(byte *NBT_Data);
+
+#endif
