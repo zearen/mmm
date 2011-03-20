@@ -13,15 +13,10 @@ class NBT
 {
    private:
    bool _isReady;
-   FILE* _nbtFile;
    char * _decompressedStream;
-   TAG_Compound * _rootNode;
+   TAG_Compound _rootNode;
    
-   
-   NBT_SHORT ParseShort(NBT_BYTE * data, long int start, long int maxSize);
-   NBT_StringHolder ParseString(NBT_BYTE * data, long int start, long int maxSize);
-   TAG_Compound * ParseCompoundTag(NBT_BYTE * data, long int start, long int maxSize);
-   
+      
    
    public:
 
@@ -32,9 +27,11 @@ class NBT
    
    bool LoadFile(string fileName);
    
-   void Decompress();
+   void Decompress(string fileName);
    
-   void Parse(NBT_BYTE * data, long int length);
+   void Display();
+   
+   void Parse(NBT_BYTE * data);
    
    void CloseFile();
    
