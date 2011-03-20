@@ -1,7 +1,7 @@
 [Project]
 FileName=mmm.dev
 Name=mmm
-UnitCount=12
+UnitCount=9
 Type=1
 Ver=1
 ObjFiles=
@@ -12,27 +12,27 @@ ResourceIncludes=
 MakeIncludes=
 Compiler=
 CppCompiler=
-Linker=
+Linker=../../../Dev-Cpp/lib/libzdll.a_@@_
 IsCpp=1
 Icon=
 ExeOutput=
 ObjectOutput=
 OverrideOutput=0
-OverrideOutputName=
+OverrideOutputName=mmm.exe
 HostApplication=
-Folders=zlib
+Folders=
 CommandLine=
 UseCustomMakefile=0
 CustomMakefile=
 IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
-CompilerSettings=
+CompilerSettings=0000000000000000000000
 
 [Unit1]
 FileName=src\main.cpp
 CompileCpp=1
-Folder=mmm
+Folder=
 Compile=1
 Link=1
 Priority=1000
@@ -42,7 +42,7 @@ BuildCmd=
 [Unit2]
 FileName=src\nbt.cpp
 CompileCpp=1
-Folder=mmm
+Folder=
 Compile=1
 Link=1
 Priority=1000
@@ -52,7 +52,7 @@ BuildCmd=
 [Unit3]
 FileName=src\nbt.h
 CompileCpp=1
-Folder=mmm
+Folder=
 Compile=1
 Link=1
 Priority=1000
@@ -62,7 +62,7 @@ BuildCmd=
 [Unit4]
 FileName=src\nbt_defines.h
 CompileCpp=1
-Folder=mmm
+Folder=
 Compile=1
 Link=1
 Priority=1000
@@ -72,7 +72,7 @@ BuildCmd=
 [Unit5]
 FileName=src\nbt_tags.h
 CompileCpp=1
-Folder=mmm
+Folder=
 Compile=1
 Link=1
 Priority=1000
@@ -82,7 +82,7 @@ BuildCmd=
 [Unit6]
 FileName=src\NBTTree.cpp
 CompileCpp=1
-Folder=mmm
+Folder=
 Compile=1
 Link=1
 Priority=1000
@@ -92,7 +92,7 @@ BuildCmd=
 [Unit7]
 FileName=src\NBTTree.h
 CompileCpp=1
-Folder=mmm
+Folder=
 Compile=1
 Link=1
 Priority=1000
@@ -100,7 +100,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit8]
-FileName=src\utilities.cpp
+FileName=src\util.cpp
 CompileCpp=1
 Folder=mmm
 Compile=1
@@ -110,7 +110,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit9]
-FileName=src\utilities.h
+FileName=src\util.h
 CompileCpp=1
 Folder=mmm
 Compile=1

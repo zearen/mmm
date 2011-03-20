@@ -1,9 +1,16 @@
+#ifndef _UTIL_H
+#define _UTIL_H
+
+
 #include <string>
 using namespace std;
 
 class Utilities
 {
       public:
+            
+      static bool IsLittleEndian;
+      static void DetectBigEndian(void);
             
       static bool FileExists(string fileName);
       
@@ -24,3 +31,5 @@ E endianSwap(E val) {
     
     return uVal.e;
 }
+
+#endif

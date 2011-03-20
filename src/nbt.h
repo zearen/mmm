@@ -3,7 +3,6 @@
 
 #include <fstream>
 #include <string>
-#include "zlib/stdafx.h"
 #include "nbt_defines.h"
 #include "NBTTree.h"
 
