@@ -12,15 +12,15 @@ class Utilities
 // Fix endian crap
 
 template <class E>
-E endianSwap(E& val) {
+E endianSwap(E val) {
     union {
         E e;
         char c[sizeof(E)];
     } uVal;
     uVal.e = val;
     
-    for(int i = 0; i < sizeof(E) >> 1, i++)
-        swap(uVal.c[i], uVal.c[sizeof(E) - 1]);
+    for(int i = 0; i < sizeof(E) >> 1; i++)
+        swap(uVal.c[i], uVal.c[sizeof(E) - i - 1]);
     
     return uVal.e;
 }
