@@ -15,6 +15,7 @@ class NBT_Tag {
         NBT_StringHolder *_name;
         TagType _type;
     public:
+        NBT_Tag(TagType tagType);
         NBT_Tag(NBT_StringHolder *name, TagType tagType);
         ~NBT_Tag();
         NBT_StringHolder* GetName();
@@ -79,7 +80,7 @@ class TAG_List : public NBT_Tag {
 class FieldNotFoundError {};
 class TAG_Compound : public NBT_Tag {
     private:
-        deque<NBT_Tag> fields;
+        deque<NBT_Tag*> fields;
     public:
         TAG_Compound();
         ~TAG_Compound();
