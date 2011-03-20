@@ -4,8 +4,9 @@
 #include <string.h>
 #include <deque>
 #include "nbt_defines.h"
-
-
+#include <iostream>
+#include "utilities.h"
+#include "endian.h"
 
 using namespace std;
 
@@ -40,7 +41,7 @@ class TAG_String : public NBT_Tag {
     public:
         TAG_String();
         ~TAG_String();
-        static NBT_StringHolder * Parse(NBT_BYTE * data);
+        static NBT_StringHolder Parse(NBT_BYTE * data);
         NBT_BYTE * parseTag(NBT_BYTE * data);
         
 };
@@ -70,6 +71,10 @@ class TAG_Atom : public NBT_Tag {
             */
             setName(TAG_String::Parse(data));
             data += getName()->length + 2;
+             
+            cout << "Parsing atomic string name: " << *getName()->value << endl;
+            cout << "Parsing atomic string length: " << getName()->length << endl;
+            cout.flush();
             
             // get payload
             payload = Parse(data);
@@ -80,7 +85,24 @@ class TAG_Atom : public NBT_Tag {
         
         static E Parse(NBT_BYTE * data)
         {
-            return *((E*)data);
+            E t = *((E*)data);
+            if(!BigEndianSystem)
+            {
+            if(sizeof(E) == 2)
+            {
+                t = (E)ShortSwap((short)t);
+            }
+            if(sizeof(E) == 4)
+            {
+                t = (E)FloatSwap((float)t);
+            }
+            if(sizeof(E) == 8)
+            {
+                t = (E)DoubleSwap((double)t);
+            }
+            }
+            
+            return t;
         }
         
         // 

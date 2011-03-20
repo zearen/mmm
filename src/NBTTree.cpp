@@ -3,6 +3,8 @@
 #include <deque>
 #include <iostream>
 
+
+
 NBT_Tag::NBT_Tag(NBT_StringHolder *name, TagType tagType)
 {
     _name = name;
@@ -96,9 +98,9 @@ NBT_BYTE * TAG_Compound::parseTag(NBT_BYTE * data)
         
         NBT_BYTE * start = data;
         
-        NBT_StringHolder* name = TAG_String::Parse(data);
-        cout << "Compound tag name: " << *name->value << endl;
-        cout << "Compound tag length: " << name->length << endl;
+        NBT_StringHolder name = TAG_String::Parse(data);
+        cout << "Compound tag name: " << *name.value << endl;
+        cout << "Compound tag length: " << name.length << endl;
         cout << "Compound tag short size: " << sizeof(NBT_SHORT) << endl;
         cout.flush();
         
@@ -108,7 +110,7 @@ NBT_BYTE * TAG_Compound::parseTag(NBT_BYTE * data)
         cout << "Set name " << endl;
         cout.flush();
         
-        data += name->length + sizeof(NBT_SHORT);
+        data += name.length + sizeof(NBT_SHORT);
         cout << "Moved ahead" << endl;
         cout.flush();
         
@@ -119,12 +121,11 @@ NBT_BYTE * TAG_Compound::parseTag(NBT_BYTE * data)
         while(doContinue)
         {
             cout << "Reading byte " << (short int)(*data) << endl;
-            switch(*data)
+            switch(*data++)
             {
                 // I MADE IT! :D
                 case TAGTYPE_END:
                     
-                    data++; // position after this end marker
                     doContinue = false;
                     break;
                     
@@ -137,6 +138,9 @@ NBT_BYTE * TAG_Compound::parseTag(NBT_BYTE * data)
                     
                 // Atomics
                 case TAGTYPE_SHORT:
+                    cout << "omg i found a short!" << endl;
+                    cout.flush();
+                    
                     t = new TAG_Short;
                     data = ((TAG_Short*)t)->parseTag(data);
                     add(t);
@@ -196,7 +200,7 @@ TAG_String::TAG_String() : NBT_Tag(TAGTYPE_STRING)
 };
 
 
-NBT_StringHolder* TAG_String::Parse(NBT_BYTE * data)
+NBT_StringHolder TAG_String::Parse(NBT_BYTE * data)
 {
         // grab a short from data
         NBT_SHORT len = TAG_Short::Parse(data);
@@ -206,9 +210,9 @@ NBT_StringHolder* TAG_String::Parse(NBT_BYTE * data)
         memcpy(name, data, len);
         name[len] = 0; // terminate string!
         
-        NBT_StringHolder * v = new NBT_StringHolder;
-        v->length = len;
-        v->value = name;
+        NBT_StringHolder v;
+        v.length = len;
+        v.value = name;
         
         return v;
 }

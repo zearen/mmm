@@ -18,13 +18,13 @@
 #define NBT_FLOAT float
 
 // 16 bits, big endian
-#define NBT_SHORT short int
+#define NBT_SHORT short unsigned int
 
 // 32 bits, bin endian
 #define NBT_INT int
 
 // 64 bits, big endian
-#define NBT_LONG long int
+#define NBT_LONG long long unsigned int
 
     typedef struct NBT_StringHolder
     {
@@ -45,7 +45,6 @@ typedef enum TagType {
     TAGTYPE_SHORT      = 2,
     TAGTYPE_STRING     = 8
     };
-
 
 
 #endif
