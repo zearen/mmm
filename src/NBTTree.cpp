@@ -33,9 +33,13 @@ NBT_Tag::~NBT_Tag()
 }
 
 
-NBT_StringHolder NBT_Tag::getName()
+NBT_StringHolder NBT_Tag::getNameHolder()
 {
     return _name;
+}
+char * NBT_Tag::getName()
+{
+    return _name.value;
 }
 
 TagType NBT_Tag::getType()
@@ -43,6 +47,14 @@ TagType NBT_Tag::getType()
     return _type;
 }
 
+
+
+
+void NBT_Tag::setName(const string & name)
+{
+    _name.length = name.length();
+    _name.value = strdup(name.c_str());
+};
 
 
 void NBT_Tag::setName(NBT_StringHolder name)
@@ -87,10 +99,37 @@ TAG_Compound::~TAG_Compound()
 void TAG_Compound::add(NBT_Tag* newItem)
 {
     //TODO: put in middle, sort by tag
-    cout << "Adding new Tag Into Tree..." << endl;
-    cout << "   Type: " << newItem->getType() << ", Name: " << (newItem->getName().value) << endl;
+    cout << "Adding new Tag into compound: ";
+    cout << "Type: " << newItem->getType() << ", Name: " << newItem->getName() << endl;
     fields.push_back(newItem);
 }
+
+NBT_Tag * TAG_Compound::operator[] (char * name)
+{
+    
+      deque<NBT_Tag *>::iterator it;
+        it = fields.begin();
+
+      while (it != fields.end())
+        {
+            NBT_Tag * test = *it++;
+            if (strcmp(test->getName(),name) == 0)
+            {
+                return test;
+            }
+        }
+
+
+      return NULL;
+}
+
+
+NBT_INT TAG_Compound::size()
+{
+    return fields.size();
+}
+
+//char ** listTagNames();
 
 
 NBT_BYTE * TAG_Compound::parseTag(NBT_BYTE * data)
@@ -218,7 +257,7 @@ NBT_BYTE * TAG_String::parseTag(NBT_BYTE * data)
     // grab name of tag
     setName(TAG_String::Parse(data));
     // offset past name of tag
-    data += getName().length + sizeof(NBT_SHORT);
+    data += getNameHolder().length + sizeof(NBT_SHORT);
     
     // get length of string
     payload.length = TAG_Short::Parse(data);
@@ -263,7 +302,7 @@ NBT_BYTE * TAG_List::parseTag(NBT_BYTE * data)
     // grab name of tag
     setName(TAG_String::Parse(data));
     // offset past name of tag
-    data += getName().length + sizeof(NBT_SHORT);
+    data += getNameHolder().length + sizeof(NBT_SHORT);
     
     // get element type
     TagType eleType = (TagType)TAG_Byte::Parse(data);
@@ -279,12 +318,18 @@ NBT_BYTE * TAG_List::parseTag(NBT_BYTE * data)
     data += sizeof(NBT_INT);
     _numberOfElements = numElements;
     
+    
     byte * myVal = new byte[dataSize];
     memcpy(myVal, data, dataSize);
     
     // store into data area
     items = myVal;
 
+
+    cout << "Parsing a List type of Element " << eleType << endl;
+    cout << "Number of elements: " << numElements << endl;
+    cout << "Peak: " << myVal << endl;
+    
     // position data past the end of the string    
     return data + dataSize;
 }

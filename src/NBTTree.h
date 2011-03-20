@@ -19,7 +19,9 @@ class NBT_Tag {
         NBT_Tag(TagType tagType);
         NBT_Tag(NBT_StringHolder name, TagType tagType);
         ~NBT_Tag();
-        NBT_StringHolder getName();
+        char * getName();
+        NBT_StringHolder getNameHolder();
+        void setName(const string &name);
         void setName(NBT_StringHolder name);
         void setName(NBT_StringHolder *name);
         TagType getType();
@@ -69,7 +71,7 @@ class TAG_Atom : public NBT_Tag {
             // etc etc...
             */
             setName(TAG_String::Parse(data));
-            data += getName().length + 2;
+            data += getNameHolder().length + 2;
             
             // get payload
             payload = Parse(data);
@@ -81,7 +83,7 @@ class TAG_Atom : public NBT_Tag {
         static E Parse(NBT_BYTE * data)
         {
             E t = *((E*)data);
-            if(!Utilities::IsBigEndianSystem())
+            if(Utilities::IsLittleEndian)
             {
                 t = endianSwap<E>(t);
             }
@@ -141,9 +143,15 @@ class TAG_Compound : public NBT_Tag {
     public:
         TAG_Compound();
         ~TAG_Compound();
-        NBT_Tag *operator[] (char *field);
         void add(NBT_Tag *newItem);
+        
         NBT_BYTE * parseTag(NBT_BYTE * data);
+        
+        NBT_Tag *operator[] (char * name);
+        NBT_INT size();
+        char ** listTagNames();
+                
+        
 };
 
 //NBT_Tag *parseNBT(byte *NBT_Data);

@@ -6,6 +6,9 @@
 #ifndef _nbt_defines
 #define _nbt_defines
 
+#define NBT_BUFFER_SIZE 1048576 // how many bytes max? = 1mb chunk max...
+
+
 // 8 bits
 #define NBT_BYTE unsigned char
 

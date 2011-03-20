@@ -11,6 +11,7 @@ using namespace std;
 
 static string WORLD_PATH = "";
 static string PLAYER_PATH = "";
+static string REGION_PATH = "";
 
 
 /* Load Server Configuration from server.properties */
@@ -38,8 +39,9 @@ void LoadConfiguration(void)
            if(dataFileLine.compare(0,11,"level-name=") == 0)
            {
               // found the info you want!
-              WORLD_PATH = dataFileLine.substr(11);
-              PLAYER_PATH = WORLD_PATH + "/players/";
+              WORLD_PATH = dataFileLine.substr(11) + "/";
+              PLAYER_PATH = WORLD_PATH + "players/";
+              REGION_PATH = WORLD_PATH + "region/";
            }
 
         }
@@ -50,7 +52,10 @@ void LoadConfiguration(void)
 
 
 int main(int argc, char *argv[])
-{    
+{
+    
+    // Determine if system is big or little endian (sets Utilities::IsLittleEndian )
+    Utilities::DetectBigEndian();    
     
     
     cout << "Reading server properties . . . " << endl;
@@ -61,11 +66,9 @@ int main(int argc, char *argv[])
        
     cout << "Lol!" << endl;
     
-    NBT player;
-    //player.LoadFile("spackula.dat");
-    player.Decompress("spackula.dat");
+    NBT * player = NBT::DecompressFile(WORLD_PATH + "/level.dat");
     //player.CloseFile();
-    player.Display();
+    player->DisplayToScreen();
        
     system("PAUSE");
     return EXIT_SUCCESS;

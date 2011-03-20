@@ -12,28 +12,21 @@ using namespace std;
 class NBT 
 {
    private:
-   bool _isReady;
-   char * _decompressedStream;
+        
    TAG_Compound _rootNode;
    
-      
    
    public:
-
    NBT();
    ~NBT();
-   
-   bool IsReady(void);
-   
-   bool LoadFile(string fileName);
-   
-   void Decompress(string fileName);
-   
-   void Display();
-   
+
    void Parse(NBT_BYTE * data);
+
+   static NBT * DecompressFile(string fileName);
+
+   static NBT * DecompressMemory(NBT_BYTE * buffer, NBT_INT length);
    
-   void CloseFile();
+   void DisplayToScreen();
    
 };
 
