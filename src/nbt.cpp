@@ -1,7 +1,7 @@
 #include <string>
 #include <fstream>
 #include "nbt.h"
-#include "utilities.h"
+#include "util.h"
 #include "nbt_defines.h"
 
 #include "zlib/stdafx.h"
@@ -46,7 +46,7 @@
    
    void NBT::Display()
    {
-        cout << _rootNode.getName() << endl;
+        cout << _rootNode.getName().value << endl;
     }
     
    void NBT::Decompress(string fileName)
@@ -59,7 +59,6 @@
         }
         
         _nbtFile = fopen(fileName.c_str(),  "rb");
-        cout << "File opened! " << endl;
         cout.flush();
         
         // get file size
@@ -70,7 +69,6 @@
         fseek(_nbtFile, 0, SEEK_SET);
         
         Byte * compressedFile = (Byte *)malloc(sizeof(Byte)*fileSize);
-        if(compressedFile == NULL) cout << "Denied Love!" << endl;
         
         int len;
 
@@ -78,21 +76,13 @@
         cout.flush();
         
         len = fread(compressedFile, 1, fileSize, _nbtFile);
-        
-        cout << "Actually read " << len << endl;
-        cout << "Read file into buffer!!!" << endl;
-        cout << "Print: " << compressedFile << endl;
         // decompress now!
         
         // set to nbt root
         //_rootTag = ParseCompoundTag(decompressedData, 0, decompressedSize);
         
-        cout << "B4 Root name is: '" << *_rootNode.getName()->value << "' and balls!";
-        cout.flush();
-                
+
         Parse(compressedFile);
-        cout << "After Root name is: '" << *_rootNode.getName()->value << "' and balls!";
-        cout.flush();
         
         fclose(_nbtFile);
         return;

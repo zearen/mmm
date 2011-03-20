@@ -5,22 +5,21 @@
 #include <deque>
 #include "nbt_defines.h"
 #include <iostream>
-#include "utilities.h"
-#include "endian.h"
+#include "util.h"
 
 using namespace std;
 
 
 class NBT_Tag {
     private:
-        NBT_StringHolder *_name;
+        NBT_StringHolder _name;
         TagType _type;
         int _memSize;
     public:
         NBT_Tag(TagType tagType);
-        NBT_Tag(NBT_StringHolder *name, TagType tagType);
+        NBT_Tag(NBT_StringHolder name, TagType tagType);
         ~NBT_Tag();
-        NBT_StringHolder* getName();
+        NBT_StringHolder getName();
         void setName(NBT_StringHolder name);
         void setName(NBT_StringHolder *name);
         TagType getType();
@@ -70,11 +69,7 @@ class TAG_Atom : public NBT_Tag {
             // etc etc...
             */
             setName(TAG_String::Parse(data));
-            data += getName()->length + 2;
-             
-            cout << "Parsing atomic string name: " << *getName()->value << endl;
-            cout << "Parsing atomic string length: " << getName()->length << endl;
-            cout.flush();
+            data += getName().length + 2;
             
             // get payload
             payload = Parse(data);
@@ -86,20 +81,9 @@ class TAG_Atom : public NBT_Tag {
         static E Parse(NBT_BYTE * data)
         {
             E t = *((E*)data);
-            if(!BigEndianSystem)
+            if(!Utilities::IsBigEndianSystem())
             {
-            if(sizeof(E) == 2)
-            {
-                t = (E)ShortSwap((short)t);
-            }
-            if(sizeof(E) == 4)
-            {
-                t = (E)FloatSwap((float)t);
-            }
-            if(sizeof(E) == 8)
-            {
-                t = (E)DoubleSwap((double)t);
-            }
+                t = endianSwap<E>(t);
             }
             
             return t;
@@ -137,13 +121,17 @@ typedef TAG_Atom<NBT_BYTE *, TAGTYPE_BYTE_ARRAY> TAG_Byte_Array;
 class TAG_List : public NBT_Tag {
     private:
         TagType itemType;
-        int len;
-        NBT_Tag **items;
+        NBT_INT _numberOfElements;
+        byte * items;
+        
     public:
-        TAG_List(char* newName, NBT_BYTE itemType, int length);
+        TAG_List();
         ~TAG_List();
         NBT_Tag *operator [] (int index);
         int length();
+        
+        NBT_BYTE * parseTag(NBT_BYTE * data);
+
 };
 
 class FieldNotFoundError {};

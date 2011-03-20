@@ -4,7 +4,8 @@
 #include <fstream>
 
 #include "nbt.h"
-#include "utilities.h"
+#include "util.h"
+
 
 using namespace std;
 
@@ -46,8 +47,11 @@ void LoadConfiguration(void)
 
 }
 
+
+
 int main(int argc, char *argv[])
-{
+{    
+    
     
     cout << "Reading server properties . . . " << endl;
     
@@ -56,6 +60,12 @@ int main(int argc, char *argv[])
     cout << "Using map: " << WORLD_PATH << endl;  
        
     cout << "Lol!" << endl;
+    
+    NBT player;
+    //player.LoadFile("spackula.dat");
+    player.Decompress("spackula.dat");
+    //player.CloseFile();
+    player.Display();
        
     system("PAUSE");
     return EXIT_SUCCESS;

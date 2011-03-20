@@ -45,6 +45,22 @@ typedef enum TagType {
     TAGTYPE_SHORT      = 2,
     TAGTYPE_STRING     = 8
     };
+    
+
+inline short int sizeOfTagType(TagType t) {
+    short int r = 0;
+    switch(t)
+    {
+        case TAGTYPE_BYTE: r = 1; break;
+        case TAGTYPE_SHORT: r = 2; break;
+        case TAGTYPE_LONG: r = 8; break;
+        case TAGTYPE_DOUBLE: r = 8; break;
+        case TAGTYPE_FLOAT: r = 4; break;
+        case TAGTYPE_INT: r = 4; break;
+        default: r = 0; break;
+    }
+    return r;
+}
 
 
 #endif
