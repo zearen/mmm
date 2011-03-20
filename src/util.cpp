@@ -17,3 +17,4 @@ bool Utilities::FileExists(string fileName)
      }
      return doesExist;
 }
+
