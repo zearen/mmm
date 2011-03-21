@@ -1,7 +1,7 @@
 [Project]
 FileName=mmm.dev
 Name=mmm
-UnitCount=9
+UnitCount=10
 Type=1
 Ver=1
 ObjFiles=
@@ -27,7 +27,7 @@ CustomMakefile=
 IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
-CompilerSettings=0000000000000000000000
+CompilerSettings=0000000000000001000000
 
 [Unit1]
 FileName=src\main.cpp
@@ -40,7 +40,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit2]
-FileName=src\nbt.cpp
+FileName=src\NBT.cpp
 CompileCpp=1
 Folder=
 Compile=1
@@ -50,7 +50,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit3]
-FileName=src\nbt.h
+FileName=src\NBT.h
 CompileCpp=1
 Folder=
 Compile=1
@@ -60,17 +60,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit4]
-FileName=src\nbt_defines.h
-CompileCpp=1
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit5]
-FileName=src\nbt_tags.h
+FileName=src\NBTDefines.h
 CompileCpp=1
 Folder=
 Compile=1
@@ -80,16 +70,6 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit6]
-FileName=src\NBTTree.cpp
-CompileCpp=1
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit7]
 FileName=src\NBTTree.h
 CompileCpp=1
 Folder=
@@ -99,7 +79,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit8]
+[Unit7]
 FileName=src\util.cpp
 CompileCpp=1
 Folder=mmm
@@ -109,7 +89,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit9]
+[Unit8]
 FileName=src\util.h
 CompileCpp=1
 Folder=mmm
@@ -119,10 +99,20 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit10]
-FileName=src\zlib\deflate.h
+[Unit9]
+FileName=src\Region.cpp
 CompileCpp=1
-Folder=zlib
+Folder=mmm
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit10]
+FileName=src\Region.h
+CompileCpp=1
+Folder=mmm
 Compile=1
 Link=1
 Priority=1000
@@ -189,6 +179,16 @@ BuildCmd=
 FileName=src\zlib\stdafx.h
 CompileCpp=1
 Folder=zlib
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit5]
+FileName=src\NBTTree.cpp
+CompileCpp=1
+Folder=
 Compile=1
 Link=1
 Priority=1000
