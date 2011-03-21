@@ -31,12 +31,6 @@ class NBT_Tag {
         bool isType(TagType tagType2);
 };
 
-class TAG_End : NBT_Tag
-{
-    public:
-    TAG_End();
-};
-
 // NOTE: Must be above TAG_Atom because it's referenced in template
 
 class TAG_String : public NBT_Tag {
@@ -50,6 +44,60 @@ class TAG_String : public NBT_Tag {
         NBT_StringHolder getPayload(void);
         static NBT_StringHolder Rebuild(NBT_StringHolder payload);
 
+        
+};
+
+
+class TAG_Byte_Array : public NBT_Tag {
+    private:
+        NBT_INT _numberOfElements;
+        NBT_BYTE * items;
+        
+    public:
+        TAG_Byte_Array();
+        ~TAG_Byte_Array();
+        NBT_BYTE operator [] (int index);
+        NBT_INT size();
+        static NBT_StringHolder Rebuild(TAG_Byte_Array * t);
+        TAG_Byte_Array * parseTag(NBT_BYTE ** data, bool named = true);
+        NBT_BYTE * getArray();
+        
+};
+
+class TAG_List : public NBT_Tag {
+    private:
+        TagType _itemType;
+        NBT_INT _numberOfElements;
+        deque<NBT_Tag *> items;
+        
+    public:
+        TAG_List();
+        ~TAG_List();
+        NBT_Tag *operator [] (NBT_INT index);
+        NBT_INT size();
+        TagType getItemType();
+        static NBT_StringHolder Rebuild(TAG_List * t);
+        
+        TAG_List * parseTag(NBT_BYTE ** data, bool named = true);
+
+};
+
+class FieldNotFoundError {};
+class TAG_Compound : public NBT_Tag {
+    private:
+        deque<NBT_Tag*> fields;
+    public:
+        TAG_Compound();
+        ~TAG_Compound();
+        void add(NBT_Tag *newItem);
+        
+        TAG_Compound * parseTag(NBT_BYTE ** data, bool named = true);
+        
+        NBT_Tag *operator[] (char * name);
+        NBT_Tag *operator[] (NBT_INT index);
+        NBT_INT size();
+        char ** listTagNames();
+                
         
 };
 
@@ -156,59 +204,5 @@ typedef TAG_Atom<NBT_SHORT, TAGTYPE_SHORT> TAG_Short;
 
 
 
-class TAG_Byte_Array : public NBT_Tag {
-    private:
-        NBT_INT _numberOfElements;
-        NBT_BYTE * items;
-        
-    public:
-        TAG_Byte_Array();
-        ~TAG_Byte_Array();
-        NBT_BYTE operator [] (int index);
-        NBT_INT size();
-        static NBT_StringHolder Rebuild(TAG_Byte_Array * t);
-        TAG_Byte_Array * parseTag(NBT_BYTE ** data, bool named = true);
-        NBT_BYTE * getArray();
-        
-};
-
-class TAG_List : public NBT_Tag {
-    private:
-        TagType _itemType;
-        NBT_INT _numberOfElements;
-        deque<NBT_Tag *> items;
-        
-    public:
-        TAG_List();
-        ~TAG_List();
-        NBT_Tag *operator [] (NBT_INT index);
-        NBT_INT size();
-        TagType getItemType();
-        static NBT_StringHolder Rebuild(TAG_List * t);
-        
-        TAG_List * parseTag(NBT_BYTE ** data, bool named = true);
-
-};
-
-class FieldNotFoundError {};
-class TAG_Compound : public NBT_Tag {
-    private:
-        deque<NBT_Tag*> fields;
-    public:
-        TAG_Compound();
-        ~TAG_Compound();
-        void add(NBT_Tag *newItem);
-        
-        TAG_Compound * parseTag(NBT_BYTE ** data, bool named = true);
-        
-        NBT_Tag *operator[] (char * name);
-        NBT_Tag *operator[] (NBT_INT index);
-        NBT_INT size();
-        char ** listTagNames();
-                
-        
-};
-
-//NBT_Tag *parseNBT(byte *NBT_Data);
 
 #endif

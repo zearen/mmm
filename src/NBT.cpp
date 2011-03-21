@@ -1,8 +1,8 @@
 #include <string>
 #include <fstream>
-#include "nbt.h"
+#include "NBT.h"
+#include "NBTDefines.h"
 #include "util.h"
-#include "nbt_defines.h"
 
 #include <iostream>
 
@@ -11,6 +11,12 @@
 
    NBT::NBT(void)
    {
+   }
+   
+
+   TAG_Compound * NBT::getRoot(void)
+   {
+        return &_rootNode;
    }
    
    
@@ -109,7 +115,7 @@
                 
             case TAGTYPE_STRING:
                 cout << "TAG_String" << tagName.c_str() << ": ";
-                cout << ((TAG_String*)src)->getPayload()->value;
+                cout << ((TAG_String*)src)->getPayload().value;
                 cout << endl;
                 break;
                 
@@ -128,6 +134,175 @@
     }
     
 
+    void NBT::SaveToFile(string fileName)
+    {
+        
+        // make 1MB buffer
+        char * buffer = new char[NBT_BUFFER_SIZE];
+        char * bufferStart = buffer;
+        
+        NBT_INT len = 0;
+        PackTag(buffer, len, &_rootNode);
+        
+        cout << "Packing buffer (length " << len << ") to file . . ." << endl;
+                
+        gzFile nbtFile = gzopen(fileName.c_str(), "wb");
+        gzwrite(nbtFile, bufferStart, len);
+        gzclose(nbtFile);
+
+        delete [] buffer;
+        
+    }
+    
+    
+    void NBT::SaveToMemory(NBT_BYTE * buffer, NBT_INT * len)
+    {
+        
+        // make 1MB buffer
+        char * buf = new char[NBT_BUFFER_SIZE];
+        char * bufferStart = buf;
+        
+        NBT_INT origLen = 0;
+        PackTag(buf, origLen, &_rootNode);
+        
+        cout << "Packing buffer (length " << origLen << ") to memory . . ." << endl;
+                
+
+        uLongf written = NBT_BUFFER_SIZE;
+        compress(buffer, &written, (NBT_BYTE*)bufferStart, origLen);
+        
+        delete [] buf;
+        
+    }
+    
+
+    
+    void NBT::PackTag(char *& pos, NBT_INT &len, NBT_Tag * tag, bool named)
+    {
+        if(tag == NULL)
+        {
+            return;
+        }
+        
+        if(named)
+        {
+            byte myType = tag->getType();
+            
+            memcpy(pos, &myType, 1);
+            pos++;
+            len++;
+            
+            NBT_StringHolder title = TAG_String::Rebuild(tag->getNameHolder());
+                        
+            memcpy(pos, title.value, title.length);
+            len += title.length;
+            pos += title.length;
+            delete [] title.value;
+        }
+        
+        // temp vars used sometimes
+        NBT_INT size;
+        NBT_Tag * sub;
+        
+        NBT_StringHolder displayMe;
+        
+        switch(tag->getType())
+        {
+            case TAGTYPE_COMPOUND:
+                
+                size = ((TAG_Compound*)tag)->size();
+                
+                for(NBT_INT i=0;i<size;i++)
+                {
+                    sub = (*(TAG_Compound*)tag)[i];
+                
+                    PackTag(pos, len, sub);
+                }
+            
+                // TAG_End
+                
+                displayMe = TAG_Byte::Rebuild((NBT_BYTE)0);
+                break;
+
+            case TAGTYPE_LIST:
+                
+                // 1: byte type
+                displayMe = TAG_Byte::Rebuild((NBT_BYTE)((TAG_List*)tag)->getItemType());
+                memcpy(pos, displayMe.value, displayMe.length);
+                pos += displayMe.length;
+                len += displayMe.length;
+                delete [] displayMe.value;
+            
+                size = ((TAG_List*)tag)->size();
+                
+                // 2: byte size
+                displayMe = TAG_Int::Rebuild(size);
+                memcpy(pos, displayMe.value, displayMe.length);
+                pos += displayMe.length;
+                len += displayMe.length;
+                delete [] displayMe.value;
+                
+                for(NBT_INT i=0;i<size;i++)
+                {
+                    sub = (*(TAG_List*)tag)[i];
+                
+                    PackTag(pos, len, sub, false);
+                }
+                
+                
+                displayMe.length = 0;
+
+                break;
+                
+            case TAGTYPE_BYTE:
+                    displayMe = TAG_Byte::Rebuild(((TAG_Byte*)tag)->getPayload());
+                break;
+
+            case TAGTYPE_BYTE_ARRAY:
+                    displayMe = TAG_Byte_Array::Rebuild((TAG_Byte_Array*)tag);
+                break;
+
+            case TAGTYPE_DOUBLE:
+                    displayMe = TAG_Double::Rebuild(((TAG_Double*)tag)->getPayload());
+                break;
+                
+            case TAGTYPE_FLOAT:
+                    displayMe = TAG_Float::Rebuild(((TAG_Float*)tag)->getPayload());
+                break;
+                
+            case TAGTYPE_LONG:
+                    displayMe = TAG_Long::Rebuild(((TAG_Long*)tag)->getPayload());
+                break;
+                
+            case TAGTYPE_INT:
+                    displayMe = TAG_Int::Rebuild(((TAG_Int*)tag)->getPayload());
+                break;
+
+            case TAGTYPE_SHORT:
+                    displayMe = TAG_Short::Rebuild(((TAG_Short*)tag)->getPayload());
+                break;
+                
+            case TAGTYPE_STRING:
+                    displayMe = TAG_String::Rebuild(((TAG_String*)tag)->getPayload());
+                break;
+                
+            default:
+                cout << "ERROR!!!" << endl;
+                delete [] displayMe.value;
+                return;
+                break;
+                
+            }
+            if(displayMe.length > 0)
+            {
+                memcpy(pos, displayMe.value, displayMe.length);
+                pos += displayMe.length;
+                len += displayMe.length;
+            }
+        
+            delete [] displayMe.value;
+    }
+    
     
     void NBT::DisplayCompound(TAG_Compound* root, string childStr)
     {
@@ -170,18 +345,21 @@
         //delete nodes;
     }
     
-   void NBT::DisplayToScreen()
+   void NBT::DisplayToScreen(void)
    {
     
         if(!_rootNode.isParsed())
         {
-            cout << "Not ready. Cannot display to screen." << endl;
+            cout << "NBT is not parsed / ready. Cannot display to screen." << endl;
         }    
         else
         {
             DisplayCompound(&_rootNode);
         }
     }
+    
+    
+    
     
    NBT * NBT::DecompressFile(string fileName)
    {
@@ -231,6 +409,14 @@
         }
         gzread(myFile, uncompressedFile, uncompressedSize);
         gzclose(myFile);
+        
+        //TEMP: Write to file
+        
+        ofstream outfile ("uncompressed.dat", ofstream::binary);
+        outfile.write((char*)uncompressedFile, uncompressedSize);
+        outfile.close();
+        
+        
         
         NBT * n = new NBT;
         n->Parse(uncompressedFile);
@@ -283,21 +469,25 @@
         return n;
     }
     
-      
+    
       
    void NBT::Parse(NBT_BYTE * data)
    {
+        NBT_BYTE ** dblPointer = new NBT_BYTE *(data);
+        
         long int position = 0;
         
         if(*data == TAGTYPE_COMPOUND)
         {
-            _rootNode.parseTag(++data);
+
+            (*dblPointer)++;
+            _rootNode.parseTag(dblPointer);
         }
         else
         {
             // No root node, fail.
             
-            cout << "NO!!!!!!! BAD FILE IS BAD!: SAY: " << (unsigned short int)*data << endl; 
+            cout << "ERROR: Problem reading NBT! Root tag was not compound. It was actually type " << (unsigned short int)*data << endl;
         }
         
          return;
