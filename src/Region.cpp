@@ -126,7 +126,7 @@ void Region::write(byte x, byte z, chunk_t chunk) {
         if (inblk.i) {
             // If we've allocated sectors, unallocate them.
             endIndex = (endianSwap<int>(inblk.i) >> 8) + (curSize >> 12);
-            for (i = endIndex - (curSize >> 12); i <= endIndex; i++) {
+            for (i = endIndex - (curSize >> 12); i < endIndex; i++) {
                 setSectorFree(i, true);
             }
             printSectors(freeSectors);
