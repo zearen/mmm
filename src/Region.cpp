@@ -11,6 +11,13 @@ union intBlock {
 
 int getOffset(byte x, byte z);
 
+void printSectors(vector<bool>& fs) {
+    for (int i = 0; i < fs.size(); i++) {
+        printf("%d",(int)fs[i]);
+    }
+    printf("\n");
+}
+
 Region::chunk_t::chunk_t(short length, byte compression) {
     cmpr = compression;
     if (length > 0) {
@@ -44,7 +51,7 @@ void Region::open(char *filename) {
     regionFile.seekg(0, ios::end);
     size = regionFile.tellg();
     if (size < R_SECTOR_SIZE * 2) {
-        printf("    Growing file... \n");
+        printf("    Growing file\n");
         // we need to grow the file
         int bytesNeeded = R_SECTOR_SIZE * 2 - size;
         const byte zero = 0;
@@ -58,7 +65,6 @@ void Region::open(char *filename) {
     freeSectors.resize((size >> 12) + 1, true);
     setSectorFree(0, false); // offsets
     setSectorFree(1, false); // timestamps
-    printf("    Marking free sectors\n");
     for (i = 2; i < 1024; i++) {
         regionFile.read(inblk.c, 4);
         if (inblk.i) { // If chunk exists
@@ -68,7 +74,8 @@ void Region::open(char *filename) {
             }
         }
     }
-    printf("Done.\n\n");
+    printSectors(freeSectors);
+    printf("\nDone.\n\n");
 }
 
 void Region::write(byte x, byte z, chunk_t chunk) {
@@ -89,6 +96,7 @@ void Region::write(byte x, byte z, chunk_t chunk) {
     printf("    Timestamped at 0x%08x\n", (int)regionFile.tellp()-4);
     
     // First we need to figure out where to put the data
+    chunk.len += 4; // We're going to write an extra 4 bytes to be safe
     regionFile.seekg(offset);
     regionFile.read(inblk.c, 4);
     curSize = R_SECTOR_SIZE * ((int)inblk.c[3]);
@@ -101,27 +109,27 @@ void Region::write(byte x, byte z, chunk_t chunk) {
         outByte = (chunk.len >> 12) + 1; // len / 4096 + 1
         regionFile.seekp(offset + 3);
         regionFile.write((char*)&outByte, 1);
-        endIndex = (endianSwap<int>(inblk.i) >> 8) + curSize;
-        for (i = endIndex - outByte; i <= endIndex; i++) {
+        endIndex = (endianSwap<int>(inblk.i) >> 8) + (curSize >> 12);
+        for (i = endIndex - (curSize >> 12) + outByte; i < endIndex; i++) {
             setSectorFree(i, true);
         }
+        printSectors(freeSectors);
         regionFile.seekp(R_SECTOR_SIZE * (endianSwap<int>(inblk.i) >> 8));
     }
     
     else if (chunk.len > curSize) {
         // We're bigger, so we need to grow in sectors
         printf("bigger\n");
-        outByte = (chunk.len >> 12) + 1; // len / 4096 + 1
+        outByte = (chunk.len >> 12) + 1; // len / R_SECTOR_SIZE + 1
         regionFile.seekp(offset + 3);
         regionFile.write((char*)&outByte, 1);
         if (inblk.i) {
             // If we've allocated sectors, unallocate them.
-            endIndex = (endianSwap<int>(inblk.i) >> 8) + curSize;
-            printf("    Free sectors from... ");
-            for (i = endIndex - outByte; i < endIndex; i++) {
+            endIndex = (endianSwap<int>(inblk.i) >> 8) + (curSize >> 12);
+            for (i = endIndex - (curSize >> 12); i <= endIndex; i++) {
                 setSectorFree(i, true);
             }
-            printf("Done.\n");
+            printSectors(freeSectors);
         }
         offset = allocSpace(outByte);
         regionFile.seekp(-4, ios::cur);
@@ -138,13 +146,19 @@ void Region::write(byte x, byte z, chunk_t chunk) {
     
     // At this point we should be on the data,
     //+ so we write
-    printf("    Committing data at 0x%08x\n", (int)regionFile.tellp());
+    printf("\n    Committing data at 0x%08x\n", (int)regionFile.tellp());
+    chunk.len -= 4; // We need the actual value now
     offset = endianSwap<int>(chunk.len + 1);
     regionFile.write((char*)&offset, 4);
     regionFile.write((char*)&chunk.cmpr, 1);
     regionFile.write((char*)chunk.data, chunk.len - 1);
+
+    // top off sector
+    offset = 0;
+    regionFile.write((char*)&offset, 4);
     regionFile.flush();
-    printf("Done.\n");
+    printSectors(freeSectors);
+    printf("Done.\n\n");
 }
 
 // Called when we need to find more space to insert.
@@ -178,8 +192,10 @@ int Region::allocSpace(byte sectorsToAlloc) {
         regionFile.write((char*)&zero, 1);
     }
     regionFile.seekp(oldpos);
+            
     
     return offset;
+    printf("    Done.\n");
 }
 
 Region::chunk_t Region::read(byte x, byte z) {
@@ -207,6 +223,25 @@ Region::chunk_t Region::read(byte x, byte z) {
     return ret;
 }
 
+void Region::erase(byte x, byte z) {
+    const int zero = 0;
+    intBlock inblk;
+    int offset = getOffset(x,z), endIndex;
+    
+    printf("Deleting...\n");
+    regionFile.seekg(offset);
+    regionFile.read(inblk.c, 4);
+    endIndex = (endianSwap<int>(inblk.i) >> 8) + inblk.c[3];
+    for (int i = endIndex - inblk.c[3]; i < endIndex; i++) {
+        setSectorFree(i, true);
+    }
+    printSectors(freeSectors);
+    regionFile.seekp(offset);
+    regionFile.write((char*)&zero,4);
+    
+    printf("Done.\n\n");
+}
+
 inline int getOffset(byte x, byte z) {
     if (x > 31 || z > 31)
         throw ChunkOutOfRangeError();
@@ -221,12 +256,12 @@ inline void Region::growFreeSectors(int needSpace) {
 }
 
 void Region::setSectorFree(unsigned int sector, bool val) {
-    printf("Free sector 0x%08x\r", sector);
-    growFreeSectors(sector - freeSectors.size());
+    growFreeSectors(sector - freeSectors.size() + 1);
     freeSectors[sector] = val;
 }
 
 bool Region::isSectorFree(unsigned int sector) {
-    growFreeSectors(sector - freeSectors.size());
+    growFreeSectors(sector - freeSectors.size() + 1);
+    printf("s%d:%d, ", sector, (int)freeSectors[sector]);
     return freeSectors[sector];
 }

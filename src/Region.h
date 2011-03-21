@@ -44,5 +44,6 @@ class Region {
         
         void open(char *filename);
         void write(byte x, byte z, chunk_t chunk);
+        void erase(byte x, byte z);
         chunk_t read(byte x, byte z);
 };

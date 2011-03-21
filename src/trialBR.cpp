@@ -33,6 +33,16 @@ int main(int argc, char **argv) {
                 cout << "z: ";
                 cin >> z;
                 tread(br, x, z);
+                break;
+            case 3:
+                cout << "Deleting\nx: ";
+                cin >> x;
+                cout << "z: ";
+                cin >> z;
+                br.erase(x, z);
+                break;
+            default:
+                choice = 0;
         }
     } while (choice);
     cout << "Quiting\n";
