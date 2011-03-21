@@ -3,7 +3,7 @@
 
 #include <fstream>
 
-#include "nbt.h"
+#include "NBT.h"
 #include "util.h"
 
 
@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
     if  (player)
     {
         player->DisplayToScreen();
+        player->SaveToFile("bigtest_stream.txt");
     }else
     {
         cout << "There was an error reading file. Cannot process." << endl;

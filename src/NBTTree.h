@@ -3,7 +3,7 @@
 
 #include <string.h>
 #include <deque>
-#include "nbt_defines.h"
+#include "NBTDefines.h"
 #include <iostream>
 #include "util.h"
 
@@ -45,9 +45,11 @@ class TAG_String : public NBT_Tag {
     public:
         TAG_String();
         ~TAG_String();
-        static NBT_StringHolder Parse(NBT_BYTE * data);
-        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true);
-        NBT_StringHolder * getPayload(void);
+        static NBT_StringHolder Parse(NBT_BYTE ** data);
+        TAG_String * parseTag(NBT_BYTE ** data, bool named = true);
+        NBT_StringHolder getPayload(void);
+        static NBT_StringHolder Rebuild(NBT_StringHolder payload);
+
         
 };
 
@@ -63,7 +65,7 @@ class TAG_Atom : public NBT_Tag {
             return;            
         }
         
-        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true)
+        TAG_Atom<E,tagVal> * parseTag(NBT_BYTE ** data, bool named = true)
         {
              _isParsed = true;
 
@@ -76,22 +78,25 @@ class TAG_Atom : public NBT_Tag {
             if(named)
             {
                 setName(TAG_String::Parse(data));
-                data += getNameHolder().length + sizeof(NBT_SHORT);
+                //data += getNameHolder().length + sizeof(NBT_SHORT);
             }
             // get payload
             payload = Parse(data);            
-            data += sizeof(E);
-            return data;
+            //data += sizeof(E);
+            return this;
             
         }
         
-        static E Parse(NBT_BYTE * data)
+        static E Parse(NBT_BYTE ** data)
         {
-            E t = *((E*)data);
+            E t = *( (E*)(*data) );
             if(Utilities::IsLittleEndian)
             {
                 t = endianSwap<E>(t);
             }
+            
+            // keep this
+            (*data) += sizeof(E);
             
             return t;
         }
@@ -100,6 +105,36 @@ class TAG_Atom : public NBT_Tag {
         TAG_Atom(char* newName, E newPayload) {
             NBT_Tag(newName, tagVal);
             setPayload(newPayload);
+        }
+        
+    
+        
+        static NBT_StringHolder Rebuild(E payload, bool fixEndian = true)
+        {
+            
+            if(Utilities::IsLittleEndian && fixEndian) 
+            {
+                payload = endianSwap<E>(payload);
+            }
+            E* pay2 = new E;
+            *pay2 = payload;
+            
+            char *x = (char*)(pay2);
+            
+            if(Utilities::IsLittleEndian)
+            {
+                // move to proper index
+                //x += (sizeof(E)-1);
+
+                
+            }
+            
+            NBT_StringHolder n;
+            n.length = sizeof(E);
+            n.value = x;
+            return n;
+            
+            
         }
             
         E getPayload() {
@@ -131,9 +166,10 @@ class TAG_Byte_Array : public NBT_Tag {
         ~TAG_Byte_Array();
         NBT_BYTE operator [] (int index);
         NBT_INT size();
-       
-        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true);
-
+        static NBT_StringHolder Rebuild(TAG_Byte_Array * t);
+        TAG_Byte_Array * parseTag(NBT_BYTE ** data, bool named = true);
+        NBT_BYTE * getArray();
+        
 };
 
 class TAG_List : public NBT_Tag {
@@ -145,11 +181,12 @@ class TAG_List : public NBT_Tag {
     public:
         TAG_List();
         ~TAG_List();
-        NBT_Tag *operator [] (int index);
+        NBT_Tag *operator [] (NBT_INT index);
         NBT_INT size();
         TagType getItemType();
+        static NBT_StringHolder Rebuild(TAG_List * t);
         
-        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true);
+        TAG_List * parseTag(NBT_BYTE ** data, bool named = true);
 
 };
 
@@ -162,9 +199,10 @@ class TAG_Compound : public NBT_Tag {
         ~TAG_Compound();
         void add(NBT_Tag *newItem);
         
-        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true);
+        TAG_Compound * parseTag(NBT_BYTE ** data, bool named = true);
         
         NBT_Tag *operator[] (char * name);
+        NBT_Tag *operator[] (NBT_INT index);
         NBT_INT size();
         char ** listTagNames();
                 

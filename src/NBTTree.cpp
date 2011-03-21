@@ -1,5 +1,5 @@
 #include "NBTTree.h"
-#include "nbt_defines.h"
+#include "NBTDefines.h"
 #include <deque>
 #include <iostream>
 
@@ -143,6 +143,11 @@ NBT_Tag * TAG_Compound::operator[] (char * name)
 }
 
 
+NBT_Tag * TAG_Compound::operator[] (NBT_INT i)
+{
+    return fields[i];
+}
+
 NBT_INT TAG_Compound::size()
 {
     return fields.size();
@@ -170,16 +175,13 @@ char ** TAG_Compound:: listTagNames()
 }
 
 
-NBT_BYTE * TAG_Compound::parseTag(NBT_BYTE * data, bool named)
+TAG_Compound * TAG_Compound::parseTag(NBT_BYTE ** data, bool named)
    {
         _isParsed = true;
         
         if(named)
         {
-            NBT_StringHolder name = TAG_String::Parse(data);
-            // apply name
-            setName(name);
-            data += name.length + sizeof(NBT_SHORT);
+            setName(TAG_String::Parse(data));
         }
         
         bool doContinue = true;
@@ -189,82 +191,68 @@ NBT_BYTE * TAG_Compound::parseTag(NBT_BYTE * data, bool named)
         while(doContinue)
         {
 
-            switch(*data++)
+            switch(*((*data)++))
             {
                 // I MADE IT! :D
                 case TAGTYPE_END:
                     doContinue = false;
                     break;
                     
-                // I HAS A BABY!
                 case TAGTYPE_COMPOUND:
-                    t = new TAG_Compound;
-                    data = ((TAG_Compound*)t)->parseTag(data);
-                    add((TAG_Compound*)t);
+                    t = (new TAG_Compound)->parseTag(data);
                     break;
                     
                 case TAGTYPE_BYTE_ARRAY:
-                    t = new TAG_Byte_Array;
-                    data = ((TAG_Byte_Array*)t)->parseTag(data);
-                    add((TAG_Byte_Array*)t);
+                    t = (new TAG_Byte_Array)->parseTag(data);
+                    break;
+                    
+                case TAGTYPE_STRING:
+                    t = (new TAG_String)->parseTag(data);
+                    break;
+                    
+                case TAGTYPE_LIST:
+                    t = (new TAG_List)->parseTag(data);
                     break;
                     
                 // Atomics
                 case TAGTYPE_SHORT:
-                    t = new TAG_Short;
-                    data = ((TAG_Short*)t)->parseTag(data);
-                    add(t);
+                    t = (new TAG_Short)->parseTag(data);
                     break;
+                    
                 case TAGTYPE_INT:
-                    t = new TAG_Int;
-                    data = ((TAG_Int*)t)->parseTag(data);
-                    add(t);
+                    t = (new TAG_Int)->parseTag(data);
                     break;
+
                 case TAGTYPE_LONG:
-                    t = new TAG_Long;
-                    data = ((TAG_Long*)t)->parseTag(data);
-                    add(t);
+                    t = (new TAG_Long)->parseTag(data);
                     break;
+
                 case TAGTYPE_DOUBLE:
-                    t = new TAG_Double;
-                    data = ((TAG_Double*)t)->parseTag(data);
-                    add(t);
+                    t = (new TAG_Double)->parseTag(data);
                     break;
                     
                 case TAGTYPE_FLOAT:
-                    t = new TAG_Float;
-                    data = ((TAG_Float*)t)->parseTag(data);
-                    add(t);
+                    t = (new TAG_Float)->parseTag(data);
                     break;
                     
                 case TAGTYPE_BYTE:
-                    t = new TAG_Byte;
-                    data = ((TAG_Byte*)t)->parseTag(data);
-                    add(t);
-                    break;
-                    
-                case TAGTYPE_STRING:
-                    t = new TAG_String;
-                    data = ((TAG_String*)t)->parseTag(data);
-                    add(t);
-                    break;
-                    
-                case TAGTYPE_LIST:
-                    t = new TAG_List;
-                    data = ((TAG_List*)t)->parseTag(data);
-                    add(t);
+                    t = (new TAG_Byte)->parseTag(data);
                     break;
                     
                 default:
-                    cout << "ERROR Reading - Unknown TAG Type: " << (short int)*(data-1) << endl;
+                    doContinue = false;
+                    cout << "ERROR Reading - Unknown TAG Type: " << (short int)*((*data)-1) << endl;
                     break;
 
-            };
+            }
             
-
+            if(doContinue)
+            {
+                add(t);
+            } 
         }
         
-        return data;
+        return this;
     }
 
 //*************************
@@ -278,17 +266,17 @@ TAG_String::TAG_String() : NBT_Tag(TAGTYPE_STRING)
 };
 
 
-NBT_StringHolder TAG_String::Parse(NBT_BYTE * data)
+NBT_StringHolder TAG_String::Parse(NBT_BYTE ** data)
 {
         // grab a short from data
         NBT_SHORT len = TAG_Short::Parse(data);
-        data += sizeof(NBT_SHORT);
+        //data += sizeof(NBT_SHORT);
         char * name;
         
         if(len > 0)
         {
             name = new char[len+1];
-            memcpy(name, data, len);
+            memcpy(name, *data, len);
             name[len] = 0; // terminate string!
         }
         else
@@ -296,7 +284,10 @@ NBT_StringHolder TAG_String::Parse(NBT_BYTE * data)
             name = new char[1];
             name[0] = 0;
         }
-            
+        
+        // keep this
+        (*data) += len;
+        
         NBT_StringHolder v;
         v.length = len;
         v.value = name;
@@ -304,12 +295,35 @@ NBT_StringHolder TAG_String::Parse(NBT_BYTE * data)
         return v;
 }
 
-NBT_StringHolder * TAG_String::getPayload(void)
+NBT_StringHolder TAG_String::Rebuild(NBT_StringHolder payload)
 {
-    return &payload;
+    char * x = new char[payload.length + sizeof(NBT_SHORT)];
+
+    NBT_StringHolder h = TAG_Short::Rebuild(payload.length);
+    
+    memcpy(x, h.value, sizeof(NBT_SHORT));
+    delete [] h.value;
+    
+    x += sizeof(NBT_SHORT);
+    
+    memcpy(x, payload.value, payload.length);
+    
+    NBT_StringHolder nb;
+    nb.length = payload.length + sizeof(NBT_SHORT);
+    nb.value = x - sizeof(NBT_SHORT); // go back to beginning
+    
+    return nb;
+    
+    
 }
 
-NBT_BYTE * TAG_String::parseTag(NBT_BYTE * data, bool named)
+
+NBT_StringHolder TAG_String::getPayload(void)
+{
+    return payload;
+}
+
+TAG_String * TAG_String::parseTag(NBT_BYTE ** data, bool named)
 {
     _isParsed = true;
     
@@ -318,27 +332,14 @@ NBT_BYTE * TAG_String::parseTag(NBT_BYTE * data, bool named)
         // grab name of tag
         setName(TAG_String::Parse(data));
         // offset past name of tag
-        data += getNameHolder().length + sizeof(NBT_SHORT);
+        //data += getNameHolder().length + sizeof(NBT_SHORT);
     };
 
-    // get length of string
-    payload.length = TAG_Short::Parse(data);
-    
-    // offset to beginning of string
-    data += sizeof(NBT_SHORT);
-    
-    // copy length bytes
-    char * myVal = new char[payload.length + 1];
-    memcpy(myVal, data, payload.length);
-    
-    // null terminate the string
-    myVal[payload.length] = 0;
 
-    // copy new char[] into "Payload"
-    payload.value = myVal;
-
-    // position data past the end of the string    
-    return data + payload.length;
+    //parse string itself
+    payload =  TAG_String::Parse(data);
+    
+    return this; // + payload.length + sizeof(NBT_SHORT);
 }
 
 
@@ -370,7 +371,7 @@ TagType TAG_List :: getItemType(void)
 
 
 
-NBT_BYTE * TAG_List::parseTag(NBT_BYTE * data, bool named)
+TAG_List * TAG_List::parseTag(NBT_BYTE ** data, bool named)
 {
     _isParsed = true;
 
@@ -379,20 +380,20 @@ NBT_BYTE * TAG_List::parseTag(NBT_BYTE * data, bool named)
         // grab name of tag
         setName(TAG_String::Parse(data));
         // offset past name of tag
-        data += getNameHolder().length + sizeof(NBT_SHORT);
+        //data += getNameHolder().length + sizeof(NBT_SHORT);
     }
     
     // get element type
     TagType eleType = (TagType)TAG_Byte::Parse(data);
     NBT_SHORT bitSize = sizeOfTagType(eleType);
-    data += 1;
+    //data += 1;
    
     
     NBT_Tag * nbt;
         
     // get # element in list
     NBT_INT numElements = TAG_Int::Parse(data);
-    data += sizeof(NBT_INT);
+    //data += sizeof(NBT_INT);
     
     _itemType = eleType;
     _numberOfElements = numElements;
@@ -403,43 +404,43 @@ NBT_BYTE * TAG_List::parseTag(NBT_BYTE * data, bool named)
         {
             case TAGTYPE_COMPOUND:
                 // damn it.
-                nbt = new TAG_Compound;
-                data = ((TAG_Compound*)nbt)->parseTag(data,false);
+                nbt = (new TAG_Compound)->parseTag(data,false);
                 break;
                 
             case TAGTYPE_STRING:
-                nbt = new TAG_String;
-                data = ((TAG_String*)nbt)->parseTag(data,false);
+                nbt = (new TAG_String)->parseTag(data,false);
                 break;
                 
+            case TAGTYPE_BYTE_ARRAY:
+                nbt = (new TAG_Byte_Array)->parseTag(data,false);
+                break;
+                
+            case TAGTYPE_LIST:
+                nbt = (new TAG_List)->parseTag(data,false);
+                break;
+
             case TAGTYPE_BYTE:
-                nbt = new TAG_Byte;
-                data = ((TAG_Byte*)nbt)->parseTag(data,false);
+                nbt = (new TAG_Byte)->parseTag(data,false);
                 break;
-                
+                                
             case TAGTYPE_DOUBLE:
-                nbt = new TAG_Double;
-                data = ((TAG_Double*)nbt)->parseTag(data,false);
+                nbt = (new TAG_Double)->parseTag(data,false);
                 break;
                 
             case TAGTYPE_FLOAT:
-                nbt = new TAG_Float;
-                data = ((TAG_Float*)nbt)->parseTag(data,false);
+                nbt = (new TAG_Float)->parseTag(data,false);
                 break;
                 
             case TAGTYPE_INT:
-                nbt = new TAG_Int;
-                data = ((TAG_Int*)nbt)->parseTag(data,false);
+                nbt = (new TAG_Int)->parseTag(data,false);
                 break;
                 
             case TAGTYPE_LONG:
-                nbt = new TAG_Long;
-                data = ((TAG_Long*)nbt)->parseTag(data,false);
+                nbt = (new TAG_Long)->parseTag(data,false);
                 break;
                 
             case TAGTYPE_SHORT:
-                nbt = new TAG_Short;
-                data = ((TAG_Short*)nbt)->parseTag(data,false);
+                nbt = (new TAG_Short)->parseTag(data,false);
                 break;
     
         };
@@ -448,7 +449,7 @@ NBT_BYTE * TAG_List::parseTag(NBT_BYTE * data, bool named)
     }
     
     // position data past the end of the string    
-    return data;
+    return this;
 }
 
 NBT_Tag * TAG_List::operator[] (NBT_INT i)
@@ -469,6 +470,7 @@ TAG_Byte_Array::TAG_Byte_Array() : NBT_Tag(TAGTYPE_BYTE_ARRAY)
 
 TAG_Byte_Array::~TAG_Byte_Array()
 {
+    delete [] items;
     return;
 };
 
@@ -477,10 +479,15 @@ NBT_INT TAG_Byte_Array :: size(void)
     return _numberOfElements;
 }
 
+NBT_BYTE * TAG_Byte_Array :: getArray(void)
+{
+    return items;
+}
 
 
 
-NBT_BYTE * TAG_Byte_Array::parseTag(NBT_BYTE * data, bool named)
+
+TAG_Byte_Array * TAG_Byte_Array::parseTag(NBT_BYTE ** data, bool named)
 {
     _isParsed = true;
 
@@ -489,21 +496,44 @@ NBT_BYTE * TAG_Byte_Array::parseTag(NBT_BYTE * data, bool named)
         // grab name of tag
         setName(TAG_String::Parse(data));
         // offset past name of tag
-        data += getNameHolder().length + sizeof(NBT_SHORT);
+        //data += getNameHolder().length + sizeof(NBT_SHORT);
     }
     
     // get # element in list
     NBT_INT numElements = TAG_Int::Parse(data);
-    data += sizeof(NBT_INT);
+    //data += sizeof(NBT_INT);
     
     _numberOfElements = numElements;
     
     items = new NBT_BYTE[_numberOfElements];
-    memcpy(items, data, _numberOfElements);
+    memcpy(items, *data, _numberOfElements);
     
+    (*data) += _numberOfElements;
     
-    // position data past the end of the string    
-    return data + _numberOfElements;
+    return this;
+}
+NBT_StringHolder TAG_Byte_Array::Rebuild(TAG_Byte_Array * t)
+{
+    
+    NBT_INT size = t->size();
+    NBT_BYTE * data = t->getArray();
+    
+    NBT_StringHolder h = TAG_Int::Rebuild(size);
+    
+    char * x = new char[size + sizeof(NBT_INT)];
+    char * start = x;
+    memcpy(x, h.value, sizeof(NBT_INT));
+    delete [] h.value;
+    
+    x += sizeof(NBT_INT);
+    
+    memcpy(x, data, size);
+    
+    NBT_StringHolder nb;
+    nb.length = size + sizeof(NBT_INT);
+    nb.value = start; // go back to beginning
+    
+    return nb;
 }
 
 NBT_BYTE TAG_Byte_Array::operator[] (NBT_INT i)
