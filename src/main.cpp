@@ -19,12 +19,13 @@ static string REGION_PATH = "";
 void LoadConfiguration(void)
 {    // load server properties
     
+    WORLD_PATH = "world";
+
     if(!Utilities::FileExists("server.properties"))
     {
         cout << "ERROR: Cannot open server.properties... Are you in the minecraft folder?" << endl;
         cout << "Assuming default world path of 'world' for now." << endl;
         cout << "WARNING: Program will crash if world folder doesn't exist.";
-        WORLD_PATH = "world";
     }
     else
     {
@@ -39,13 +40,17 @@ void LoadConfiguration(void)
            if(dataFileLine.compare(0,11,"level-name=") == 0)
            {
               // found the info you want!
-              WORLD_PATH = dataFileLine.substr(11) + "/";
-              PLAYER_PATH = WORLD_PATH + "players/";
-              REGION_PATH = WORLD_PATH + "region/";
+              
+            WORLD_PATH = dataFileLine.substr(11);
            }
 
         }
+        
     }
+    WORLD_PATH = WORLD_PATH + "/";
+    PLAYER_PATH = WORLD_PATH + "players/";
+    REGION_PATH = WORLD_PATH + "region/";
+
 
 }
 
@@ -66,7 +71,7 @@ int main(int argc, char *argv[])
        
     cout << "Lol!" << endl;
     
-    NBT * player = NBT::DecompressFile(WORLD_PATH + "/level.dat");
+    NBT * player = NBT::DecompressFile(PLAYER_PATH + "zearen.dat");
     //player.CloseFile();
     player->DisplayToScreen();
        

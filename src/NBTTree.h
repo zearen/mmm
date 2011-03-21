@@ -43,7 +43,8 @@ class TAG_String : public NBT_Tag {
         TAG_String();
         ~TAG_String();
         static NBT_StringHolder Parse(NBT_BYTE * data);
-        NBT_BYTE * parseTag(NBT_BYTE * data);
+        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true);
+        NBT_StringHolder * getPayload(void);
         
 };
 
@@ -51,6 +52,7 @@ template <class E, TagType tagVal>
 class TAG_Atom : public NBT_Tag {
     private:
         E payload;
+    protected:
     public:
         
         TAG_Atom() : NBT_Tag(tagVal)
@@ -58,11 +60,7 @@ class TAG_Atom : public NBT_Tag {
             return;            
         }
         
-        TagType getType() {
-            return tagVal;
-        }
-        
-        NBT_BYTE * parseTag(NBT_BYTE * data)
+        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true)
         {
             // get name
             /*
@@ -70,11 +68,13 @@ class TAG_Atom : public NBT_Tag {
             start += sizeof(NBT_SHORT);
             // etc etc...
             */
-            setName(TAG_String::Parse(data));
-            data += getNameHolder().length + 2;
-            
+            if(named)
+            {
+                setName(TAG_String::Parse(data));
+                data += getNameHolder().length + sizeof(NBT_SHORT);
+            }
             // get payload
-            payload = Parse(data);
+            payload = Parse(data);            
             data += sizeof(E);
             return data;
             
@@ -102,12 +102,11 @@ class TAG_Atom : public NBT_Tag {
         }
         
         void setPayload(E newPayload) {
-            payload = newPayload;
+          payload = newPayload;
         }
 };
 
 
-// We may need a template specialization for TAG_String
 typedef TAG_Atom<NBT_BYTE, TAGTYPE_BYTE> TAG_Byte;
 typedef TAG_Atom<NBT_DOUBLE, TAGTYPE_DOUBLE> TAG_Double;
 typedef TAG_Atom<NBT_FLOAT, TAGTYPE_FLOAT> TAG_Float;
@@ -122,17 +121,18 @@ typedef TAG_Atom<NBT_BYTE *, TAGTYPE_BYTE_ARRAY> TAG_Byte_Array;
 
 class TAG_List : public NBT_Tag {
     private:
-        TagType itemType;
+        TagType _itemType;
         NBT_INT _numberOfElements;
-        byte * items;
+        deque<NBT_Tag *> items;
         
     public:
         TAG_List();
         ~TAG_List();
         NBT_Tag *operator [] (int index);
-        int length();
+        NBT_INT size();
+        TagType getItemType();
         
-        NBT_BYTE * parseTag(NBT_BYTE * data);
+        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true);
 
 };
 
@@ -145,7 +145,7 @@ class TAG_Compound : public NBT_Tag {
         ~TAG_Compound();
         void add(NBT_Tag *newItem);
         
-        NBT_BYTE * parseTag(NBT_BYTE * data);
+        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true);
         
         NBT_Tag *operator[] (char * name);
         NBT_INT size();
