@@ -21,13 +21,13 @@
 #define NBT_FLOAT float
 
 // 16 bits, big endian
-#define NBT_SHORT short unsigned int
+#define NBT_SHORT short signed int
 
 // 32 bits, bin endian
-#define NBT_INT int
+#define NBT_INT signed int
 
 // 64 bits, big endian
-#define NBT_LONG long long unsigned int
+#define NBT_LONG long long signed int
 
     typedef struct NBT_StringHolder
     {
