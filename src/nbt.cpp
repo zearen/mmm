@@ -62,10 +62,18 @@
         switch(t)
         {
             case TAGTYPE_BYTE:
-                cout << "TAG_Byte" << tagName.c_str() << ": 0x";
+                cout << "TAG_Byte" << tagName.c_str() << ": ";
                 cout << (unsigned short)(0 << 8 | ((TAG_Byte*)src)->getPayload());
                 cout << endl;
                 break;
+                
+                
+            case TAGTYPE_BYTE_ARRAY:
+                cout << "TAG_Byte_Array" << tagName.c_str() << ": [";
+                cout << ((TAG_Byte_Array*)src)->size();
+                cout << " bytes]" << endl;
+                break;
+                
             case TAGTYPE_DOUBLE:
                 cout << "TAG_Double" << tagName.c_str() << ": ";
                 cout << ((TAG_Double*)src)->getPayload();
@@ -164,9 +172,15 @@
     
    void NBT::DisplayToScreen()
    {
-        
-        DisplayCompound(&_rootNode);
-        
+    
+        if(!_rootNode.isParsed())
+        {
+            cout << "Not ready. Cannot display to screen." << endl;
+        }    
+        else
+        {
+            DisplayCompound(&_rootNode);
+        }
     }
     
    NBT * NBT::DecompressFile(string fileName)

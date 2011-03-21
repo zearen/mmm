@@ -24,8 +24,6 @@ void LoadConfiguration(void)
     if(!Utilities::FileExists("server.properties"))
     {
         cout << "ERROR: Cannot open server.properties... Are you in the minecraft folder?" << endl;
-        cout << "Assuming default world path of 'world' for now." << endl;
-        cout << "WARNING: Program will crash if world folder doesn't exist.";
     }
     else
     {
@@ -67,14 +65,17 @@ int main(int argc, char *argv[])
     
     LoadConfiguration();
         
-    cout << "Using map: " << WORLD_PATH << endl;  
+    cout << "Using map: " << WORLD_PATH << endl;
        
-    cout << "Lol!" << endl;
+    NBT * player = NBT::DecompressFile(WORLD_PATH + "bigtest.nbt");
+    if  (player)
+    {
+        player->DisplayToScreen();
+    }else
+    {
+        cout << "There was an error reading file. Cannot process." << endl;
+    }
     
-    NBT * player = NBT::DecompressFile(PLAYER_PATH + "zearen.dat");
-    //player.CloseFile();
-    player->DisplayToScreen();
-       
     system("PAUSE");
     return EXIT_SUCCESS;
 }

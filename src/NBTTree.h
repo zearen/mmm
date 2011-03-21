@@ -16,9 +16,12 @@ class NBT_Tag {
         TagType _type;
         int _memSize;
     public:
+        bool _isParsed; // yea i know, temporary, too lazy to make setParsed()
+
         NBT_Tag(TagType tagType);
         NBT_Tag(NBT_StringHolder name, TagType tagType);
         ~NBT_Tag();
+        bool isParsed(void);
         char * getName();
         NBT_StringHolder getNameHolder();
         void setName(const string &name);
@@ -62,6 +65,8 @@ class TAG_Atom : public NBT_Tag {
         
         NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true)
         {
+             _isParsed = true;
+
             // get name
             /*
             len t = TAG_Short::Parse(data);
@@ -116,8 +121,20 @@ typedef TAG_Atom<NBT_SHORT, TAGTYPE_SHORT> TAG_Short;
 
 
 
+class TAG_Byte_Array : public NBT_Tag {
+    private:
+        NBT_INT _numberOfElements;
+        NBT_BYTE * items;
+        
+    public:
+        TAG_Byte_Array();
+        ~TAG_Byte_Array();
+        NBT_BYTE operator [] (int index);
+        NBT_INT size();
+       
+        NBT_BYTE * parseTag(NBT_BYTE * data, bool named = true);
 
-typedef TAG_Atom<NBT_BYTE *, TAGTYPE_BYTE_ARRAY> TAG_Byte_Array;
+};
 
 class TAG_List : public NBT_Tag {
     private:
