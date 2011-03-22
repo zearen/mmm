@@ -1,81 +1,81 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <fstream>
 
 #include "NBT.h"
+#include "NBTDefines.h"
 #include "util.h"
+#include "Region.h"
+#include "MC_World.h"
+#include "player.h"
 
 
 using namespace std;
 
-static string WORLD_PATH = "";
-static string PLAYER_PATH = "";
-static string REGION_PATH = "";
-
-
 /* Load Server Configuration from server.properties */
 
-void LoadConfiguration(void)
-{    // load server properties
-    
-    WORLD_PATH = "world";
-
-    if(!Utilities::FileExists("server.properties"))
-    {
-        cout << "ERROR: Cannot open server.properties... Are you in the minecraft folder?" << endl;
-    }
-    else
-    {
-        ifstream serverProperties ("server.properties", ifstream::binary);
-        string dataFileLine;
-    
-        while(serverProperties.good())
-        {
-            getline(serverProperties, dataFileLine);
-           // find it
-           remove(dataFileLine.begin(),dataFileLine.end(),' ');
-           if(dataFileLine.compare(0,11,"level-name=") == 0)
-           {
-              // found the info you want!
-              
-            WORLD_PATH = dataFileLine.substr(11);
-           }
-
-        }
-        
-    }
-    WORLD_PATH = WORLD_PATH + "/";
-    PLAYER_PATH = WORLD_PATH + "players/";
-    REGION_PATH = WORLD_PATH + "region/";
-
-
-}
 
 
 
 int main(int argc, char *argv[])
 {
     
+    MC_World::LoadConfiguration();
+    
     // Determine if system is big or little endian (sets Utilities::IsLittleEndian )
     Utilities::DetectBigEndian();    
     
-    
-    cout << "Reading server properties . . . " << endl;
-    
-    LoadConfiguration();
+
+        /*
         
-    cout << "Using map: " << WORLD_PATH << endl;
+        // TEST 1: 
+    cout << "Using map: " << MC_World::WorldPath << endl;
        
-    NBT * player = NBT::DecompressFile(WORLD_PATH + "bigtest.nbt");
+    cout << "Trying to read bigtest.nbt..." << endl;
+    NBT * player = NBT::DecompressFile(MC_World::PlayerPath + "zearen.dat");
     if  (player)
     {
         player->DisplayToScreen();
-        player->SaveToFile("bigtest_stream.txt");
+        //player->SaveToFile("bigtest_stream.txt");
     }else
     {
         cout << "There was an error reading file. Cannot process." << endl;
     }
+    */
+    /*
+    
+    // TEST 2:
+    
+    Region r("world/region/r.0.0.mcr");
+    Region::chunk_t myChunk = r.read((byte)1,(byte)1);
+    NBT * chunk = NBT::DecompressMemory((NBT_BYTE*)myChunk.data,(NBT_INT)myChunk.len);
+    chunk->DisplayToScreen();
+    
+    TAG_Compound * rootNode = chunk -> getRoot();
+    if(!rootNode)
+    {
+        cout << "Fail reading root node." << endl;
+        return 0;
+    }
+    
+    TAG_Compound * levelNode = (TAG_Compound*)rootNode->getChild("Level");
+    if(!levelNode)
+    {
+        cout << "Fail reading level node." << endl;
+        return 0;
+    }
+    
+    NBT_INT x = TAG_Int::GetValue(levelNode->getChild("xPos"));
+    
+    NBT_INT z = TAG_Int::GetValue(levelNode->getChild("zPos"));
+    
+    cout << "Position: X " << x << "  Z " << z << endl;
+    
+    */
+    
+    Player newPlayer("zearen");
+    newPlayer.loadFromFile();
+    newPlayer.display();
     
     system("PAUSE");
     return EXIT_SUCCESS;

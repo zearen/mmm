@@ -134,7 +134,7 @@
     }
     
 
-    void NBT::SaveToFile(string fileName)
+    void NBT::saveToFile(string fileName)
     {
         
         // make 1MB buffer
@@ -155,7 +155,7 @@
     }
     
     
-    void NBT::SaveToMemory(NBT_BYTE * buffer, NBT_INT * len)
+    void NBT::saveToMemory(NBT_BYTE * buffer, NBT_INT * len)
     {
         
         // make 1MB buffer
@@ -319,13 +319,12 @@
         cout << numNodes << " entries" << endl;
         cout << childStr << "{" << endl;
         
-        char ** nodes = root->listTagNames();
         
         
         NBT_INT i = 0;
         while(i < numNodes)
         {
-            NBT_Tag * t = (*root)[*nodes];
+            NBT_Tag * t = (*root)[i];
             if(t)
             {
                 DisplayTag(t, childStr + "   ");
@@ -335,7 +334,6 @@
                 cout << childStr << "ERROR: Null tag result (not found in compound)." << endl;
             }
             i++;
-            nodes++;
         }
         
          cout << childStr << "}" << endl;
@@ -345,7 +343,7 @@
         //delete nodes;
     }
     
-   void NBT::DisplayToScreen(void)
+   void NBT::displayToScreen(void)
    {
     
         if(!_rootNode.isParsed())
@@ -361,21 +359,22 @@
     
     
     
-   NBT * NBT::DecompressFile(string fileName)
+   void NBT::decompressFile(string fileName)
    {
-        cout << "Beginning to decompress file: " << fileName << endl;
         
         FILE*_nbtFile;
         
         if(!Utilities::FileExists(fileName))
         {
-            return NULL;
+            throw new NullException;
+            return;
         }
         
         _nbtFile = fopen(fileName.c_str(),  "rb");
         if(_nbtFile == NULL)
         {
-            return NULL;
+            throw new NullException;
+            return;
         }
         
         // get file size
@@ -405,7 +404,8 @@
         if(myFile == NULL)
         {
             delete [] uncompressedFile;
-            return NULL;
+            throw new NullException;
+            return;
         }
         gzread(myFile, uncompressedFile, uncompressedSize);
         gzclose(myFile);
@@ -418,17 +418,16 @@
         
         
         
-        NBT * n = new NBT;
-        n->Parse(uncompressedFile);
+        parse(uncompressedFile);
         
         // All done here!
         delete[] uncompressedFile;
         
-        return n;
+        return;
     }
     
     
-   NBT * DecompressMemory(NBT_BYTE * buffer, NBT_INT length)
+   void NBT::decompressMemory(NBT_BYTE * buffer, NBT_INT length)
    {
         // use zlib with gzip
       z_stream zstream;
@@ -455,23 +454,41 @@
         {
             cout << "Error decompressing memory stream. Sorry." << endl;
             delete [] chunkBuffer;
-            return NULL;
+            
+            throw new exception;
+            return;
         }
         
         inflateEnd(&zstream);
         
         
-        NBT * n = new NBT;
-        n->Parse(chunkBuffer);
+        parse(chunkBuffer);
         
         delete [] chunkBuffer;
         
-        return n;
+        return;
     }
     
+    NBT_StringHolder NBT::MkStr(const char * str)
+    {
+        NBT_StringHolder st;
+        st.length = strlen(str);
+        st.value = new char[st.length+1];
+        strcpy(st.value, str);
+        return st;
+    }
     
+    void NBT::reset()
+    {
+        while(_rootNode.size() > 0)
+        {
+            NBT_Tag * t = _rootNode[0];
+            delete t;
+            _rootNode.remove(0);
+        }
+    }
       
-   void NBT::Parse(NBT_BYTE * data)
+   void NBT::parse(NBT_BYTE * data)
    {
         NBT_BYTE ** dblPointer = new NBT_BYTE *(data);
         
@@ -488,6 +505,7 @@
             // No root node, fail.
             
             cout << "ERROR: Problem reading NBT! Root tag was not compound. It was actually type " << (unsigned short int)*data << endl;
+            throw new exception;
         }
         
          return;

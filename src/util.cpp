@@ -30,4 +30,13 @@ bool Utilities::FileExists(string fileName)
      }
      return doesExist;
 }
+/*
+TypeMismatch::TypeMismatch()
+{
+    return;
+}
 
+TypeMismatch::TypeMismatch(TagType exp, TagType gotted) {
+    expected = exp;
+    got = gotted;
+}*/

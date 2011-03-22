@@ -1,6 +1,5 @@
 #include "NBTTree.h"
 #include "NBTDefines.h"
-#include <deque>
 #include <iostream>
 
 
@@ -11,6 +10,20 @@ NBT_Tag::NBT_Tag(NBT_StringHolder name, TagType tagType)
     _name = name;
     _type = tagType;
 }
+
+NBT_Tag::NBT_Tag(const char * name, TagType tagType)
+{
+    _isParsed = false;
+    
+    NBT_INT len = strlen(name);
+    char * nv = new char[len+1];
+    strcpy(nv, name);
+    
+    _name.length = len;
+    _name.value = nv;
+    _type = tagType;
+}
+
 NBT_Tag::NBT_Tag(TagType tagType)
 {
     _isParsed = false;
@@ -31,6 +44,67 @@ NBT_Tag::~NBT_Tag()
     
     //TODO: Delete root node
     //TODO: Delete file reference
+}
+
+// NOTE: When using this function, must cast then delete
+void * NBT_Tag::getValue(NBT_Tag * t)
+{
+    if(!_isParsed)
+    {
+        return NULL;
+    }
+    
+    TagType tag = getType();
+    void* val;
+    
+    switch(tag)
+    {
+        case TAGTYPE_COMPOUND:
+            return NULL;
+            
+        case TAGTYPE_LIST:
+            return NULL;
+            
+        case TAGTYPE_BYTE:
+            val = new NBT_BYTE;
+            *((NBT_BYTE*)val) = (((TAG_Byte*)t)->getPayload());
+            return val;
+            
+        case TAGTYPE_BYTE_ARRAY:
+            return ((TAG_Byte_Array*)t)->getArray();
+            
+        case TAGTYPE_DOUBLE:
+            val = new NBT_DOUBLE;
+            *((NBT_DOUBLE*)val) = (((TAG_Double*)t)->getPayload());
+            return val;
+            
+        case TAGTYPE_FLOAT:
+            
+            val = new NBT_FLOAT;
+            *((NBT_FLOAT*)val) = (((TAG_Float*)t)->getPayload());
+            return val;
+            
+        case TAGTYPE_INT:
+            val = new NBT_INT;
+            *((NBT_INT*)val) = (((TAG_Int*)t)->getPayload());
+            return val;
+            
+        case TAGTYPE_LONG:
+            val = new NBT_LONG;
+            *((NBT_LONG*)val) = (((TAG_Long*)t)->getPayload());
+            return val;
+            
+        case TAGTYPE_SHORT:
+            
+            val = new NBT_SHORT;
+            *((NBT_SHORT*)val) = (((TAG_Short*)t)->getPayload());
+            return val;
+            
+        case TAGTYPE_STRING:
+            
+            return NULL;
+    }
+
 }
 
 
@@ -74,7 +148,7 @@ void NBT_Tag::setName(NBT_StringHolder name)
 {
     
     // delete old name
-    if(_name.value != NULL)
+    if(_name.value != name.value && _name.value != NULL)
     {
         delete[] _name.value;
     }
@@ -83,31 +157,18 @@ void NBT_Tag::setName(NBT_StringHolder name)
     _name.value = name.value;
 };
 
-void NBT_Tag::setName(NBT_StringHolder *name)
-{
-    
-    
-    // delete old name
-    if(_name.value != NULL)
-    {
-        delete[] _name.value;
-    }
-    
-    
-    // set new one
-    _name.length = name->length;
-    _name.value  = name->value;
-};
-
 //*************************
 // TAG_Compound
 //*************************
 
 TAG_Compound::TAG_Compound() : NBT_Tag(TAGTYPE_COMPOUND)
 {
-    //_name=blank;
-    // _type = TAGTYPE_Compound;
-    // NBT_Tag(blank, TAGTYPE_COMPOUND);
+    _isParsed = true;    
+}
+
+TAG_Compound::TAG_Compound(const char * name) : NBT_Tag(name, TAGTYPE_COMPOUND)
+{
+    _isParsed = true;
 }
 
 TAG_Compound::~TAG_Compound()
@@ -123,7 +184,29 @@ void TAG_Compound::add(NBT_Tag* newItem)
     fields.push_back(newItem);
 }
 
-NBT_Tag * TAG_Compound::operator[] (char * name)
+
+void TAG_Compound::remove(NBT_Tag* newItem)
+{
+    //TODO: put in middle, sort by tag
+    for(NBT_INT i=0;i<fields.size();i++)
+    {
+        if(newItem == fields[i])
+        {
+            fields.erase(fields.begin() + i);
+            return;
+        }
+    }
+    
+}
+
+void TAG_Compound::remove(NBT_INT newItem)
+{
+    //TODO: put in middle, sort by tag
+
+    fields.erase(fields.begin() + newItem);
+}
+
+NBT_Tag * TAG_Compound::operator[] (const char * name)
 {
     
       deque<NBT_Tag *>::iterator it;
@@ -142,10 +225,19 @@ NBT_Tag * TAG_Compound::operator[] (char * name)
       return NULL;
 }
 
+NBT_Tag * TAG_Compound::getChild(const char * name)
+{
+    return operator[](name);
+}
 
 NBT_Tag * TAG_Compound::operator[] (NBT_INT i)
 {
     return fields[i];
+}
+
+NBT_Tag * TAG_Compound::getChild(NBT_INT i)
+{
+    return operator[](i);
 }
 
 NBT_INT TAG_Compound::size()
@@ -176,7 +268,7 @@ char ** TAG_Compound:: listTagNames()
 
 
 TAG_Compound * TAG_Compound::parseTag(NBT_BYTE ** data, bool named)
-   {
+{
         _isParsed = true;
         
         if(named)
@@ -265,6 +357,53 @@ TAG_String::TAG_String() : NBT_Tag(TAGTYPE_STRING)
     return;
 };
 
+TAG_String::TAG_String(const char * name) : NBT_Tag(name, TAGTYPE_STRING)
+{
+    return;
+};
+
+TAG_String::TAG_String(const char * name, NBT_StringHolder value) : NBT_Tag(name, TAGTYPE_STRING)
+{
+    _isParsed = true;
+    payload = value;
+    return;
+};
+
+char * TAG_String::getValue()
+{
+    return payload.value;
+};
+
+
+char * TAG_String::GetValue(NBT_Tag * t)
+{
+    if(t == NULL)
+    {
+        throw new NullException;
+    }
+    
+    if(t->getType() == TAGTYPE_STRING)
+    {
+        return ((TAG_String*)t)->getValue();
+    }
+    else
+    {
+        //throw new TypeMismatch(TAGTYPE_STRING, t->getType()); 
+        throw new TypeMismatch;
+    }
+}
+
+char * TAG_String::TryGetValue(NBT_Tag * t)
+{
+    try {
+        return GetValue(t);
+    }
+    catch(exception& e)
+    {
+        return NULL;
+    }
+}
+
 
 NBT_StringHolder TAG_String::Parse(NBT_BYTE ** data)
 {
@@ -323,6 +462,14 @@ NBT_StringHolder TAG_String::getPayload(void)
     return payload;
 }
 
+void TAG_String::setPayload(NBT_StringHolder pl)
+{
+    if(payload.value != NULL)
+        delete [] payload.value;
+        
+    payload = pl;
+}
+
 TAG_String * TAG_String::parseTag(NBT_BYTE ** data, bool named)
 {
     _isParsed = true;
@@ -350,6 +497,16 @@ TAG_String * TAG_String::parseTag(NBT_BYTE ** data, bool named)
 
 TAG_List::TAG_List() : NBT_Tag(TAGTYPE_LIST)
 {
+    return;
+};
+TAG_List::TAG_List(const char * name) : NBT_Tag(name, TAGTYPE_LIST)
+{
+    return;
+};
+TAG_List::TAG_List(const char * name, TagType itemType) : NBT_Tag(name, TAGTYPE_LIST)
+{
+    _isParsed = true;
+    _itemType = itemType;
     return;
 };
 
@@ -457,6 +614,23 @@ NBT_Tag * TAG_List::operator[] (NBT_INT i)
     return items[i];
 }
 
+NBT_Tag * TAG_List::get(NBT_INT i)
+{
+    return items.at(i);
+}
+
+void TAG_List::add(NBT_Tag * t)
+{
+    items.push_back(t);
+}
+
+void TAG_List::remove(NBT_INT i)
+{
+    // delete from memory
+    
+    items.erase(items.begin() + i);
+}
+
 
 //*************************
 // TAG_List
@@ -483,6 +657,46 @@ NBT_BYTE * TAG_Byte_Array :: getArray(void)
 {
     return items;
 }
+
+void TAG_Byte_Array :: setByte(NBT_INT pos, NBT_BYTE val)
+{
+    *(items+pos) = val;
+}
+
+void TAG_Byte_Array :: setBlock(NBT_INT start, NBT_INT len, const NBT_BYTE * newData)
+{
+    memcpy(items, newData, start);
+}
+
+NBT_BYTE * TAG_Byte_Array::GetValue(NBT_Tag * t)
+{
+    if(t == NULL)
+    {
+        throw new NullException;
+    }
+    
+    if(t->getType() == TAGTYPE_BYTE_ARRAY)
+    {
+        return ((TAG_Byte_Array*)t)->getArray();
+    }
+    else
+    {
+        //throw new TypeMismatch(TAGTYPE_STRING, t->getType()); 
+        throw new TypeMismatch;
+    }
+}
+
+NBT_BYTE * TAG_Byte_Array::TryGetValue(NBT_Tag * t)
+{
+    try {
+        return GetValue(t);
+    }
+    catch(exception& e)
+    {
+        return NULL;
+    }
+}
+
 
 
 
@@ -512,6 +726,7 @@ TAG_Byte_Array * TAG_Byte_Array::parseTag(NBT_BYTE ** data, bool named)
     
     return this;
 }
+
 NBT_StringHolder TAG_Byte_Array::Rebuild(TAG_Byte_Array * t)
 {
     
@@ -537,6 +752,11 @@ NBT_StringHolder TAG_Byte_Array::Rebuild(TAG_Byte_Array * t)
 }
 
 NBT_BYTE TAG_Byte_Array::operator[] (NBT_INT i)
+{
+    return items[i];
+}
+
+NBT_BYTE TAG_Byte_Array::getByte (NBT_INT i)
 {
     return items[i];
 }

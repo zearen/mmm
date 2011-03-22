@@ -2,12 +2,16 @@
 #define _nbt_tree
 
 #include <string.h>
+#include <vector>
 #include <deque>
 #include "NBTDefines.h"
 #include <iostream>
 #include "util.h"
+#include <exception>
+
 
 using namespace std;
+
 
 
 class NBT_Tag {
@@ -15,20 +19,56 @@ class NBT_Tag {
         NBT_StringHolder _name;
         TagType _type;
         int _memSize;
+        
     public:
         bool _isParsed; // yea i know, temporary, too lazy to make setParsed()
 
         NBT_Tag(TagType tagType);
         NBT_Tag(NBT_StringHolder name, TagType tagType);
+        NBT_Tag(const char * name, TagType tagType);
+        
         ~NBT_Tag();
         bool isParsed(void);
         char * getName();
         NBT_StringHolder getNameHolder();
         void setName(const string &name);
         void setName(NBT_StringHolder name);
-        void setName(NBT_StringHolder *name);
         TagType getType();
         bool isType(TagType tagType2);
+        
+        void * getValue(NBT_Tag * t);
+};
+
+
+class TAG_Compound : public NBT_Tag {
+    private:
+        deque<NBT_Tag*> fields;
+        
+    public:
+        TAG_Compound();
+        TAG_Compound(const char * name);
+        ~TAG_Compound();
+        
+        
+        void add(NBT_Tag *newItem);
+        
+        TAG_Compound * parseTag(NBT_BYTE ** data, bool named = true);
+        
+        NBT_Tag *operator[] (const char * name);
+        NBT_Tag *operator[] (NBT_INT index);
+        
+        
+        NBT_Tag * getChild (const char * name);
+        NBT_Tag * getChild (NBT_INT index);
+        
+        
+        void remove(NBT_Tag *newItem);
+        void remove(NBT_INT index);
+        
+        
+        NBT_INT size();
+        char ** listTagNames();
+        
 };
 
 // NOTE: Must be above TAG_Atom because it's referenced in template
@@ -38,11 +78,24 @@ class TAG_String : public NBT_Tag {
         NBT_StringHolder payload;    
     public:
         TAG_String();
+        TAG_String(const char * name);
+        TAG_String(const char * name, NBT_StringHolder value);
+        
+        // Auto set name/value
+        TAG_String(const char * Name, const char * value);
+        
+        // Auto parsetag
+        TAG_String(NBT_BYTE ** data, bool named = true);
+        
         ~TAG_String();
         static NBT_StringHolder Parse(NBT_BYTE ** data);
         TAG_String * parseTag(NBT_BYTE ** data, bool named = true);
         NBT_StringHolder getPayload(void);
+        void setPayload(NBT_StringHolder pl);
+        char * getValue(void);
         static NBT_StringHolder Rebuild(NBT_StringHolder payload);
+        static char * GetValue(NBT_Tag * t);
+        static char * TryGetValue(NBT_Tag * t);
 
         
 };
@@ -55,12 +108,22 @@ class TAG_Byte_Array : public NBT_Tag {
         
     public:
         TAG_Byte_Array();
+        TAG_Byte_Array(const char * name);
+        TAG_Byte_Array(const char * name, NBT_INT size, NBT_BYTE * items);
+        
         ~TAG_Byte_Array();
         NBT_BYTE operator [] (int index);
         NBT_INT size();
         static NBT_StringHolder Rebuild(TAG_Byte_Array * t);
         TAG_Byte_Array * parseTag(NBT_BYTE ** data, bool named = true);
         NBT_BYTE * getArray();
+        NBT_BYTE getByte(NBT_INT index);
+        
+        void setByte (NBT_INT pos, NBT_BYTE val);
+        void setBlock(NBT_INT start, NBT_INT len, const NBT_BYTE * newData);
+        
+        static NBT_BYTE * GetValue(NBT_Tag * t);
+        static NBT_BYTE * TryGetValue(NBT_Tag * t);
         
 };
 
@@ -68,38 +131,28 @@ class TAG_List : public NBT_Tag {
     private:
         TagType _itemType;
         NBT_INT _numberOfElements;
-        deque<NBT_Tag *> items;
+        vector<NBT_Tag*> items;
         
     public:
         TAG_List();
+        TAG_List(const char * name);
+        TAG_List(const char * name, TagType itemType);
+        
         ~TAG_List();
         NBT_Tag *operator [] (NBT_INT index);
+        NBT_Tag * get(NBT_INT index);
+        void add(NBT_Tag * t);
+        void remove(NBT_INT index);
         NBT_INT size();
         TagType getItemType();
         static NBT_StringHolder Rebuild(TAG_List * t);
         
         TAG_List * parseTag(NBT_BYTE ** data, bool named = true);
+        
+        
 
 };
 
-class FieldNotFoundError {};
-class TAG_Compound : public NBT_Tag {
-    private:
-        deque<NBT_Tag*> fields;
-    public:
-        TAG_Compound();
-        ~TAG_Compound();
-        void add(NBT_Tag *newItem);
-        
-        TAG_Compound * parseTag(NBT_BYTE ** data, bool named = true);
-        
-        NBT_Tag *operator[] (char * name);
-        NBT_Tag *operator[] (NBT_INT index);
-        NBT_INT size();
-        char ** listTagNames();
-                
-        
-};
 
 template <class E, TagType tagVal>
 class TAG_Atom : public NBT_Tag {
@@ -110,6 +163,19 @@ class TAG_Atom : public NBT_Tag {
         
         TAG_Atom() : NBT_Tag(tagVal)
         {
+            return;            
+        }
+        
+        TAG_Atom(E pl) : NBT_Tag(tagVal)
+        {
+            payload = pl;
+            return;            
+        }
+        
+        TAG_Atom(const char * name, E pl) : NBT_Tag(name, tagVal)
+        {
+            _isParsed = true;
+            payload = pl;
             return;            
         }
         
@@ -153,6 +219,38 @@ class TAG_Atom : public NBT_Tag {
         TAG_Atom(char* newName, E newPayload) {
             NBT_Tag(newName, tagVal);
             setPayload(newPayload);
+        }
+        
+        
+        static E TryGetValue(NBT_Tag * t)
+        {
+            try {
+                return GetValue(t);
+            }
+            catch(exception& e)
+            {
+                return 0;
+            }
+        }
+        
+        static E GetValue(NBT_Tag * t)
+        {
+            // Failed.. return 0??
+            if(t == NULL)
+            {
+                throw new NullException;
+            }
+            
+            
+            if(t->getType() == tagVal)
+            {
+                return ((TAG_Atom<E,tagVal>*)t)->getPayload();
+            }
+            else
+            {
+                //throw new TypeMismatch(tagVal, t->getType());
+                throw new TypeMismatch; 
+            }
         }
         
     
