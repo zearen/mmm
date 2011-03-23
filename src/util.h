@@ -33,7 +33,7 @@ E endianSwap(E val) {
     
     return uVal.e;
 }
-/*
+
 class FieldNotFoundError : public exception {
     
         virtual const char* what() const throw()
@@ -41,7 +41,7 @@ class FieldNotFoundError : public exception {
           return "Field not found!";
         }
         
-    } FieldNotFoundError;
+};
     
 class NullException : public exception  {
     
@@ -50,7 +50,7 @@ class NullException : public exception  {
           return "Something was null!";
         }
         
-    } NullException;
+};
 
 class TypeMismatch : public exception  {
     protected:
@@ -64,11 +64,11 @@ class TypeMismatch : public exception  {
         {
           return "Types did not agree!";
         }
-} TypeMismatch;
-*/
+};
+/*
 typedef exception TypeMismatch;
 typedef exception NullException;
 typedef exception FieldNotFoundException;
 typedef exception FileNotFoundException;
-
+*/
 #endif
