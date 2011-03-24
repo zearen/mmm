@@ -10,7 +10,7 @@ class Entity {
     public:
         NBT_DOUBLE x, dx;
         NBT_DOUBLE y, dy;
-        NBT_DOUBLE x, dz;
+        NBT_DOUBLE z, dz;
         NBT_DOUBLE theta, phi;
         NBT_FLOAT fallDist;
         NBT_SHORT fire, air;
@@ -20,10 +20,11 @@ class Entity {
         Entity(TAG_Compound *root);
         virtual void loadFromCompound(TAG_Compound *root);
         TAG_Compound *construct();
-        virtual TAG_Compound *construct(NBT_Tag *root);
+        virtual TAG_Compound *construct(TAG_Compound *root);
         const char *getId();
         
-        static Entity Entity(NBT_Tag *root);
-}
+        // what are you doing!?
+        static Entity GetEntity(NBT_Tag *root);
+};
 
 #endif

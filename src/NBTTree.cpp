@@ -173,8 +173,14 @@ TAG_Compound::TAG_Compound(const char * name) : NBT_Tag(name, TAGTYPE_COMPOUND)
 
 TAG_Compound::~TAG_Compound()
 {
-    for (deque<NBT_Tag*>::iterator i = fields.begin(); i < fields.end(); i++) {
-        delete fields[i];
+    // no.
+    //for (deque<NBT_Tag*>::iterator i = fields.begin(); i < fields.end(); i++) {
+    //    delete fields.at(i);
+    //}
+    while(!fields.empty())
+    {
+        delete fields.back();
+        fields.pop_back();
     }
 }
 
@@ -349,21 +355,21 @@ TAG_Compound * TAG_Compound::parseTag(NBT_BYTE ** data, bool named)
         return this;
     }
 
-NBT_Tag *TAG_Compound::update(NBT_Tag& *nbt) {
+NBT_Tag *TAG_Compound::update(NBT_Tag* &nbt) {
     if (!nbt) throw;
-    NBT_Tag *old = this[nbt->getName()];
+    NBT_Tag * old = getChild(nbt->getName());
     if (old) {
         if (old->getType() == TAGTYPE_COMPOUND) {
             TAG_Compound *nbtC = (TAG_Compound*) nbt;
             NBT_Tag * next;
-            for (deque<NBT_Tag*>::iterator i = nbtC->fields.begin(), 
-                i < nbtC->fields.end(); i++) {
+            for (int i = 0; 
+                i < nbtC->fields.size(); i++) {
                 next = nbtC->fields[i];
-                old->update(nbtC);
+                ((TAG_Compound*)old)->update(next);
             }
         }
         else {
-            swap(nbt, old)
+            swap(nbt, old);
         }
         delete nbt;
     }
@@ -427,7 +433,9 @@ char * TAG_String::TryGetValue(NBT_Tag * t)
     }
     catch(exception& e)
     {
-        return new char[] = {0};
+        char *ret = new char[1];
+        *ret = 0;
+        return ret;
     }
 }
 

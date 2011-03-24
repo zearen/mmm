@@ -1,6 +1,7 @@
 #include "Entity.h"
+#include "NBT.h"
 
-static Entity Entity::GetEntity(NBT_Tag *root) {
+Entity Entity::GetEntity(NBT_Tag *root) {
     // Eventually this will automatically decide between subclasses
 }
 
@@ -11,7 +12,7 @@ Entity::Entity(TAG_Compound *root) {
     loadFromCompound(root);
 }
 
-virtual void Entity::loadFromCompound(TAG_Compound *root) {
+void Entity::loadFromCompound(TAG_Compound *root) {
     NBT_Tag *tmp;
     TAG_List *list;
     
@@ -26,32 +27,32 @@ virtual void Entity::loadFromCompound(TAG_Compound *root) {
         onGround = false;
     
     tmp = root->getChild("Pos");
-    if (tmp && type.getType == TAGTYPE_LIST) {
+    if (tmp && tmp->getType() == TAGTYPE_LIST) {
         list = (TAG_List*) tmp;
-        x = TAG_Double::TryGetValue(list->get[0]);
-        y = TAG_Double::TryGetValue(list->get[1]);
-        z = TAG_Double::TryGetValue(list->get[2]);
+        x = TAG_Double::TryGetValue(list->get(0));
+        y = TAG_Double::TryGetValue(list->get(1));
+        z = TAG_Double::TryGetValue(list->get(2));
     }
     else {
         x = y = z = 0;
     }
     
     tmp = root->getChild("Motion");
-    if (tmp && type.getType == TAGTYPE_LIST) {
+    if (tmp && tmp->getType() == TAGTYPE_LIST) {
         list = (TAG_List*) tmp;
-        dx = TAG_Double::TryGetValue(list->get[0]);
-        dy = TAG_Double::TryGetValue(list->get[1]);
-        dz = TAG_Double::TryGetValue(list->get[2]);
+        dx = TAG_Double::TryGetValue(list->get(0));
+        dy = TAG_Double::TryGetValue(list->get(1));
+        dz = TAG_Double::TryGetValue(list->get(2));
     }
     else {
         dx = dy = dz = 0;
     }
     
     tmp = root->getChild("Rotation");
-    if (tmp && type.getType == TAGTYPE_LIST) {
+    if (tmp && tmp->getType() == TAGTYPE_LIST) {
         list = (TAG_List*) tmp;
-        theta = TAG_Double::TryGetValue(list->get[0]);
-        phi = TAG_Double::TryGetValue(list->get[1]);
+        theta = TAG_Double::TryGetValue(list->get(0));
+        phi = TAG_Double::TryGetValue(list->get(1));
     }
     else {
         theta = phi = 0;
@@ -62,43 +63,37 @@ TAG_Compound *Entity::construct() {
     return construct(new TAG_Compound);
 }
 
-virtual TAG_Compound *Entity::construct(TAG_Compound *root) {
-        double x, dx;
-        double y, dy;
-        double x, dz;
-        double theta, phi;
-        float fallDist;
-        short fire, air;
-        bool onGround;
+TAG_Compound *Entity::construct(TAG_Compound *root) {
     TAG_Double* tDbl;
     TAG_Short* tSht;
     TAG_Float* tFlt;
     TAG_String* tStr;
     TAG_List* tLst;
-    TAG_Byte* tByt
+    TAG_Byte* tByt;
+    NBT_Tag *nbt;
     
-    root->update(tStr = new TAG_String("Id", _id));
-    root->update(tFlt = new TAG_Float("FallDistance"));
-    root->update(tSht = new TAG_Short("Fire", fire));
-    root->update(tSht = new TAG_Short("Air", air));
-    root->update(tByt = new TAG_Byte("OnGround", onGround?1:0));
+    root->update(nbt = new TAG_String("Id", NBT::MkStr(_id)));
+    root->update(nbt = new TAG_Float("FallDistance", fallDist));
+    root->update(nbt = new TAG_Short("Fire", fire));
+    root->update(nbt = new TAG_Short("Air", air));
+    root->update(nbt = new TAG_Byte("OnGround", onGround?1:0));
     
-    lLst = new TAG_List("Pos", TAGTYPE_DOUBLE);
-    lLst->add(new TAG_Double("", x));
-    lLst->add(new TAG_Double("", y));
-    lLst->add(new TAG_Double("", z));
-    root->update(lLst);
+    tLst = new TAG_List("Pos", TAGTYPE_DOUBLE);
+    tLst->add(new TAG_Double("", x));
+    tLst->add(new TAG_Double("", y));
+    tLst->add(new TAG_Double("", z));
+    root->update(nbt = tLst);
     
-    lLst = new TAG_List("Motion", TAGTYPE_DOUBLE);
-    lLst->add(new TAG_Double("", dx));
-    lLst->add(new TAG_Double("", dy));
-    lLst->add(new TAG_Double("", dz));
-    root->update(lLst);
+    tLst = new TAG_List("Motion", TAGTYPE_DOUBLE);
+    tLst->add(new TAG_Double("", dx));
+    tLst->add(new TAG_Double("", dy));
+    tLst->add(new TAG_Double("", dz));
+    root->update(nbt = tLst);
     
-    lLst = new TAG_List("Rotation", TAGTYPE_DOUBLE);
-    lLst->add(new TAG_Double("", theta));
-    lLst->add(new TAG_Double("", phi));
-    root->update(lLst);
+    tLst = new TAG_List("Rotation", TAGTYPE_DOUBLE);
+    tLst->add(new TAG_Double("", theta));
+    tLst->add(new TAG_Double("", phi));
+    root->update(nbt = tLst);
     
 }
 

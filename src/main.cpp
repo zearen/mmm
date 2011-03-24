@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     
     // I WANT 64 DIAMOND PICKAXES DAMN IT!!!
     InventoryT axe;
-    axe.Count = 64;
+    axe.Count = 12;
     axe.Slot = 0; // first hotkey slot... see http://www.minecraftwiki.net/wiki/Data_values#Inventory_Slot_Number
     axe.id = 278; // diamond pickaxe is dec 278
     axe.Damage = 0;
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     
     // some wool of many colors
     InventoryT wool;
-    wool.Count = 64;
+    wool.Count = 255;
     wool.id = 35; // diamond pickaxe is dec 278
     
     for(byte i =0; i<15;i++)

@@ -19,7 +19,7 @@ Player::Player()
 }
 
 Player::Player(TAG_Compound * t)
-{
+{    
     // load
     loadFromCompound(t);
 }
@@ -32,51 +32,28 @@ Player::~Player()
 void Player::loadFromCompound(TAG_Compound * root)
 {
     
-    _OnGround = TAG_Byte::TryGetValue(root->getChild("OnGround"));
-    _Sleeping = TAG_Byte::TryGetValue(root->getChild("Sleeping"));
+    Entity::loadFromCompound(root);
+    
     
     _HurtTime = TAG_Short::TryGetValue(root->getChild("HurtTime"));
     _Health = TAG_Short::TryGetValue(root->getChild("Health"));
-    _Air = TAG_Short::TryGetValue(root->getChild("Air"));
+    
     _SleepTimer = TAG_Short::TryGetValue(root->getChild("SleepTimer"));
-    _Fire = TAG_Short::TryGetValue(root->getChild("Fire"));    
+    
     _AttackTime = TAG_Short::TryGetValue(root->getChild("AttackTime"));
     _DeathTime = TAG_Short::TryGetValue(root->getChild("DeathTime"));
     
-    _FallDistance = TAG_Float::TryGetValue(root->getChild("FallDistance"));
+    
     
     _Dimension = TAG_Int::TryGetValue(root->getChild("Dimension"));
     
-    TAG_List * PositionTag = (TAG_List*)(root->getChild("Pos"));
-    if(PositionTag != NULL)
-    {
-        _Position[0] = TAG_Double::TryGetValue(PositionTag->get(0));
-        _Position[1] = TAG_Double::TryGetValue(PositionTag->get(1));
-        _Position[2] = TAG_Double::TryGetValue(PositionTag->get(2));
-    }
-    
-    
-    TAG_List * MotionTag = (TAG_List*)(root->getChild("Motion"));
-    if(MotionTag != NULL)
-    {
-        _Motion[0] = TAG_Double::TryGetValue(MotionTag->get(0));
-        _Motion[1] = TAG_Double::TryGetValue(MotionTag->get(1));
-        _Motion[2] = TAG_Double::TryGetValue(MotionTag->get(2));
-    }
-    
-    TAG_List * RotationTag = (TAG_List*)(root->getChild("Rotation"));
-    if(RotationTag != NULL)
-    {
-        _Rotation[0] = TAG_Float::TryGetValue(RotationTag->get(0));
-        _Rotation[1] = TAG_Float::TryGetValue(RotationTag->get(1));
-    }
     
     // Load inventory
     
     inventory.clear();
     
     TAG_List * invTag = (TAG_List*)(root->getChild("Inventory"));
-    if(RotationTag != NULL)
+    if(invTag != NULL)
     {
         NBT_INT size = invTag->size();
         
@@ -102,27 +79,11 @@ TAG_Compound * Player::construct()
 
 TAG_Compound * Player::construct(TAG_Compound * root)
 {
+    Entity::construct(root);
+    
+    
     NBT_Tag * src;
     // Master atomic types
-    
-    // byte OnGround
-    src = root->getChild("OnGround");
-    if(!src) {
-        src = new TAG_Byte("OnGround", _OnGround);
-        root->add(src);
-    } else {
-        ((TAG_Byte*)src)->setPayload(_OnGround);
-    }
-    
-    
-    // byte OnGround
-    src = root->getChild("Sleeping");
-    if(!src) {
-        src = new TAG_Byte("Sleeping", _Sleeping);
-        root->add(src);
-    } else {
-        ((TAG_Byte*)src)->setPayload(_Sleeping);
-    }
     
     
     // short HurtTime
@@ -143,14 +104,6 @@ TAG_Compound * Player::construct(TAG_Compound * root)
         ((TAG_Short*)src)->setPayload(_Health);
     }
     
-    // short air
-    src = root->getChild("Air");
-    if(!src) {
-        src = new TAG_Short("Air", _Air);
-        root->add(src);
-    } else {
-        ((TAG_Short*)src)->setPayload(_Air);
-    }
     
     // short sleeptimer
     src = root->getChild("SleepTimer");
@@ -159,15 +112,6 @@ TAG_Compound * Player::construct(TAG_Compound * root)
         root->add(src);
     } else {
         ((TAG_Short*)src)->setPayload(_SleepTimer);
-    }
-
-    // short fire
-    src = root->getChild("Fire");
-    if(!src) {
-        src = new TAG_Short("Fire", _Fire);
-        root->add(src);
-    } else {
-        ((TAG_Short*)src)->setPayload(_Fire);
     }
     
     // short AttackTime
@@ -198,60 +142,6 @@ TAG_Compound * Player::construct(TAG_Compound * root)
     }
 
 
-    // short FallDistance
-    src = root->getChild("FallDistance");
-    if(!src) {
-        src = new TAG_Float("FallDistance", _FallDistance);
-        root->add(src);
-    } else {
-        ((TAG_Float*)src)->setPayload(_FallDistance);
-    }
-    
-    
-    // Set Position and Rotation
-    
-    src = (TAG_List*)(root->getChild("Pos"));
-    if(!src) {
-        src = new TAG_List("Pos",TAGTYPE_DOUBLE);
-        ((TAG_List*)src)->add(new TAG_Double(_Position[0]));
-        ((TAG_List*)src)->add(new TAG_Double(_Position[1]));
-        ((TAG_List*)src)->add(new TAG_Double(_Position[2]));
-        root->add(src);
-    } else {
-        ((TAG_Double*)((TAG_List*)src)->get(0))->setPayload(_Position[0]);
-        ((TAG_Double*)((TAG_List*)src)->get(1))->setPayload(_Position[1]);
-        ((TAG_Double*)((TAG_List*)src)->get(2))->setPayload(_Position[2]);
-    }
-    
-    
-    
-    
-    src = (TAG_List*)(root->getChild("Motion"));
-    if(!src) {
-        src = new TAG_List("Motion",TAGTYPE_DOUBLE);
-        ((TAG_List*)src)->add(new TAG_Double(_Motion[0]));
-        ((TAG_List*)src)->add(new TAG_Double(_Motion[1]));
-        ((TAG_List*)src)->add(new TAG_Double(_Motion[2]));
-        root->add(src);
-    } else {
-        ((TAG_Double*)((TAG_List*)src)->get(0))->setPayload(_Motion[0]);
-        ((TAG_Double*)((TAG_List*)src)->get(1))->setPayload(_Motion[1]);
-        ((TAG_Double*)((TAG_List*)src)->get(2))->setPayload(_Motion[2]);
-    }
-    
-    src = (TAG_List*)(root->getChild("Rotation"));
-    if(!src) {
-        src = new TAG_List("Rotation",TAGTYPE_FLOAT);
-        ((TAG_List*)src)->add(new TAG_Float(_Rotation[0]));
-        ((TAG_List*)src)->add(new TAG_Float(_Rotation[1]));
-        root->add(src);
-    } else {
-        ((TAG_Float*)((TAG_List*)src)->get(0))->setPayload(_Rotation[0]);
-        ((TAG_Float*)((TAG_List*)src)->get(1))->setPayload(_Rotation[1]);
-    }
-    
-    
-    
     src = (TAG_List*)(root->getChild("Inventory"));
     if(!src) {
         src = new TAG_List("Inventory",TAGTYPE_COMPOUND);
