@@ -12,13 +12,13 @@ using namespace std;
 
 
 
-Player::Player()
+Player::Player() : Entity("")
 {
     // set default values
     
 }
 
-Player::Player(TAG_Compound * t)
+Player::Player(TAG_Compound * t) : Entity("")
 {    
     // load
     loadFromCompound(t);
@@ -31,8 +31,8 @@ Player::~Player()
 
 void Player::loadFromCompound(TAG_Compound * root)
 {
-    
     Entity::loadFromCompound(root);
+    
     
     
     _HurtTime = TAG_Short::TryGetValue(root->getChild("HurtTime"));

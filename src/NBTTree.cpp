@@ -184,6 +184,21 @@ TAG_Compound::~TAG_Compound()
     }
 }
 
+int TAG_Compound::getIndex (const char * name) throw (FieldNotFound)
+{
+        NBT_Tag *test;
+      for (int it = 0; it < fields.size(); it++)
+        {
+            test = fields[it];
+            if (strcmp(test->getName(),name) == 0)
+            {
+                return it;
+            }
+        }
+
+
+      throw FieldNotFound();
+}
 
 void TAG_Compound::add(NBT_Tag* newItem)
 {
@@ -213,7 +228,7 @@ void TAG_Compound::remove(NBT_INT newItem)
 
     fields.erase(fields.begin() + newItem);
 }
-
+/*
 NBT_Tag * TAG_Compound::operator[] (const char * name)
 {
     
@@ -231,6 +246,15 @@ NBT_Tag * TAG_Compound::operator[] (const char * name)
 
 
       return NULL;
+}
+*/
+NBT_Tag * TAG_Compound::operator[] (const char * name) {
+    try {
+        return fields[getIndex(name)];
+    }
+    catch (FieldNotFound e) {
+        return NULL;
+    }
 }
 
 NBT_Tag * TAG_Compound::getChild(const char * name)
@@ -369,6 +393,7 @@ NBT_Tag *TAG_Compound::update(NBT_Tag* &nbt) {
             }
         }
         else {
+            
             swap(nbt, old);
         }
         delete nbt;
@@ -431,7 +456,7 @@ char * TAG_String::TryGetValue(NBT_Tag * t)
     try {
         return GetValue(t);
     }
-    catch(exception& e)
+    catch(...)
     {
         char *ret = new char[1];
         *ret = 0;

@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "Entity.h"
 #include "NBT.h"
 
@@ -5,10 +7,18 @@ Entity Entity::GetEntity(NBT_Tag *root) {
     // Eventually this will automatically decide between subclasses
 }
 
-Entity::Entity() {
+Entity::Entity(char * id) {
+    _id = new char [strlen(id) + 1];
+    strcpy(_id, id);
 }
 
-Entity::Entity(TAG_Compound *root) {
+Entity::~Entity() {
+    if (_id) delete[] _id;
+}
+
+Entity::Entity(TAG_Compound *root, char * id) {
+    _id = new char [strlen(id) + 1];
+    strcpy(_id, id);
     loadFromCompound(root);
 }
 
@@ -16,7 +26,8 @@ void Entity::loadFromCompound(TAG_Compound *root) {
     NBT_Tag *tmp;
     TAG_List *list;
     
-    _id = TAG_String::TryGetValue(root->getChild("Id"));
+    //_id = TAG_String::TryGetValue(root->getChild("Id"));
+    
     
     fallDist = TAG_Float::TryGetValue(root->getChild("FallDistance"));
     fire = TAG_Short::TryGetValue(root->getChild("Fire"));
@@ -64,12 +75,7 @@ TAG_Compound *Entity::construct() {
 }
 
 TAG_Compound *Entity::construct(TAG_Compound *root) {
-    TAG_Double* tDbl;
-    TAG_Short* tSht;
-    TAG_Float* tFlt;
-    TAG_String* tStr;
     TAG_List* tLst;
-    TAG_Byte* tByt;
     NBT_Tag *nbt;
     
     root->update(nbt = new TAG_String("Id", NBT::MkStr(_id)));
@@ -82,19 +88,23 @@ TAG_Compound *Entity::construct(TAG_Compound *root) {
     tLst->add(new TAG_Double("", x));
     tLst->add(new TAG_Double("", y));
     tLst->add(new TAG_Double("", z));
-    root->update(nbt = tLst);
+    nbt = tLst;
+    root->update(nbt);
     
     tLst = new TAG_List("Motion", TAGTYPE_DOUBLE);
     tLst->add(new TAG_Double("", dx));
     tLst->add(new TAG_Double("", dy));
     tLst->add(new TAG_Double("", dz));
-    root->update(nbt = tLst);
+    nbt =  tLst;
+    root->update(nbt);
     
     tLst = new TAG_List("Rotation", TAGTYPE_DOUBLE);
     tLst->add(new TAG_Double("", theta));
     tLst->add(new TAG_Double("", phi));
-    root->update(nbt = tLst);
+    nbt = tLst;
+    root->update(nbt);
     
+    return root;
 }
 
 const char *Entity::getId() {

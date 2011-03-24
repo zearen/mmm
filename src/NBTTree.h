@@ -44,6 +44,8 @@ class NBT_Tag
 class TAG_Compound : public NBT_Tag {
     private:
         deque<NBT_Tag*> fields;
+        class FieldNotFound{};
+        int getIndex(const char *name) throw (FieldNotFound);
         
     public:
         TAG_Compound();

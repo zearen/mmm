@@ -16,8 +16,9 @@ class Entity {
         NBT_SHORT fire, air;
         bool onGround;
         
-        Entity();
-        Entity(TAG_Compound *root);
+        Entity(char * id = "");
+        Entity(TAG_Compound *root, char * id = "");
+        ~Entity();
         virtual void loadFromCompound(TAG_Compound *root);
         TAG_Compound *construct();
         virtual TAG_Compound *construct(TAG_Compound *root);

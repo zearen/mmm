@@ -25,6 +25,8 @@ int main(int argc, char *argv[])
     // Determine if system is big or little endian (sets Utilities::IsLittleEndian )
     Utilities::DetectBigEndian();    
     
+    cout << "Help me! Please!!!!!" << endl;
+    cout.flush();
 
         /*
         
@@ -75,6 +77,10 @@ int main(int argc, char *argv[])
     
     NBT nCpu;
     nCpu.decompressFile("world/players/spackula.dat");
+    
+    cout << "BEFORE WORK NBT: " << endl;
+    nCpu.displayToScreen();
+    
     
     Player p(nCpu.getRoot());
     
