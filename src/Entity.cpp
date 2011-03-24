@@ -1,5 +1,9 @@
 #include "Entity.h"
 
+static Entity Entity::GetEntity(NBT_Tag *root) {
+    // Eventually this will automatically decide between subclasses
+}
+
 Entity::Entity() {
 }
 
@@ -7,7 +11,7 @@ Entity::Entity(TAG_Compound *root) {
     loadFromCompound(root);
 }
 
-void Entity::loadFromCompound(TAG_Compound *root) {
+virtual void Entity::loadFromCompound(TAG_Compound *root) {
     NBT_Tag *tmp;
     TAG_List *list;
     
@@ -58,7 +62,7 @@ TAG_Compound *Entity::construct() {
     return construct(new TAG_Compound);
 }
 
-TAG_Compound *Entity::construct(TAG_Compound *root) {
+virtual TAG_Compound *Entity::construct(TAG_Compound *root) {
         double x, dx;
         double y, dy;
         double x, dz;

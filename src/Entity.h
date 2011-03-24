@@ -8,20 +8,22 @@ class Entity {
     private:
         char *_id;
     public:
-        double x, dx;
-        double y, dy;
-        double x, dz;
-        double theta, phi;
-        float fallDist;
-        short fire, air;
+        NBT_DOUBLE x, dx;
+        NBT_DOUBLE y, dy;
+        NBT_DOUBLE x, dz;
+        NBT_DOUBLE theta, phi;
+        NBT_FLOAT fallDist;
+        NBT_SHORT fire, air;
         bool onGround;
         
         Entity();
         Entity(TAG_Compound *root);
-        void loadFromCompound(TAG_Compound *root);
+        virtual void loadFromCompound(TAG_Compound *root);
         TAG_Compound *construct();
-        TAG_Compound *construct(NBT_Tag *root);
+        virtual TAG_Compound *construct(NBT_Tag *root);
         const char *getId();
+        
+        static Entity Entity(NBT_Tag *root);
 }
 
 #endif
