@@ -173,7 +173,9 @@ TAG_Compound::TAG_Compound(const char * name) : NBT_Tag(name, TAGTYPE_COMPOUND)
 
 TAG_Compound::~TAG_Compound()
 {
-    // todo: delete fields queue
+    for (deque<NBT_Tag*>::iterator i = fields.begin(); i < fields.end(); i++) {
+        delete fields[i];
+    }
 }
 
 
@@ -347,6 +349,32 @@ TAG_Compound * TAG_Compound::parseTag(NBT_BYTE ** data, bool named)
         return this;
     }
 
+NBT_Tag *TAG_Compound::update(NBT_Tag& *nbt) {
+    if (!nbt) throw;
+    NBT_Tag *old = this[nbt->getName()];
+    if (old) {
+        if (old->getType() == TAGTYPE_COMPOUND) {
+            TAG_Compound *nbtC = (TAG_Compound*) nbt;
+            NBT_Tag * next;
+            for (deque<NBT_Tag*>::iterator i = nbtC->fields.begin(), 
+                i < nbtC->fields.end(); i++) {
+                next = nbtC->fields[i];
+                old->update(nbtC);
+            }
+        }
+        else {
+            swap(nbt, old)
+        }
+        delete nbt;
+    }
+    else {
+        add(nbt);
+        old = nbt;
+        nbt = NULL;
+    }
+    return old;
+}
+
 //*************************
 // TAG_String
 //*************************
@@ -379,7 +407,7 @@ char * TAG_String::GetValue(NBT_Tag * t)
 {
     if(t == NULL)
     {
-        throw new NullException;
+        throw new NullException();
     }
     
     if(t->getType() == TAGTYPE_STRING)
@@ -399,7 +427,7 @@ char * TAG_String::TryGetValue(NBT_Tag * t)
     }
     catch(exception& e)
     {
-        return NULL;
+        return new char[] = {0};
     }
 }
 

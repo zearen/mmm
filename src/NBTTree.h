@@ -66,6 +66,7 @@ class TAG_Compound : public NBT_Tag {
         void remove(NBT_Tag *newItem);
         void remove(NBT_INT index);
         
+        NBT_Tag *update(NBT_Tag& *nbt) {
         
         NBT_INT size();
         char ** listTagNames();
