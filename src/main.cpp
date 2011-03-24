@@ -73,9 +73,43 @@ int main(int argc, char *argv[])
     
     */
     
-    Player newPlayer("zearen");
-    newPlayer.loadFromFile();
-    newPlayer.display();
+    NBT nCpu;
+    nCpu.decompressFile("world/players/spackula.dat");
+    
+    Player p(nCpu.getRoot());
+    
+    // toss out my old inventory
+    p.inventory.clear();
+    
+    
+    // I WANT 64 DIAMOND PICKAXES DAMN IT!!!
+    InventoryT axe;
+    axe.Count = 64;
+    axe.Slot = 0; // first hotkey slot... see http://www.minecraftwiki.net/wiki/Data_values#Inventory_Slot_Number
+    axe.id = 278; // diamond pickaxe is dec 278
+    axe.Damage = 0;
+    p.inventory.push_back(axe);
+    
+    
+    // some wool of many colors
+    InventoryT wool;
+    wool.Count = 64;
+    wool.id = 35; // diamond pickaxe is dec 278
+    
+    for(byte i =0; i<15;i++)
+    {
+    
+    wool.Slot = i+9; // first hotkey slot... see http://www.minecraftwiki.net/wiki/Data_values#Inventory_Slot_Number
+    wool.Damage = i;
+    p.inventory.push_back(wool);
+    }
+    
+    
+    p.construct(nCpu.getRoot());
+    
+    nCpu.displayToScreen();
+    nCpu.saveToFile("world/players/spackula.dat");
+    
     
     system("PAUSE");
     return EXIT_SUCCESS;

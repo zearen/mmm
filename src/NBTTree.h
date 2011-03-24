@@ -14,12 +14,13 @@ using namespace std;
 
 
 
-class NBT_Tag {
+class NBT_Tag
+{
     private:
         NBT_StringHolder _name;
         TagType _type;
         int _memSize;
-        
+
     public:
         bool _isParsed; // yea i know, temporary, too lazy to make setParsed()
 
@@ -142,6 +143,7 @@ class TAG_List : public NBT_Tag {
         NBT_Tag *operator [] (NBT_INT index);
         NBT_Tag * get(NBT_INT index);
         void add(NBT_Tag * t);
+        void clear(void);
         void remove(NBT_INT index);
         NBT_INT size();
         TagType getItemType();
@@ -227,7 +229,7 @@ class TAG_Atom : public NBT_Tag {
             try {
                 return GetValue(t);
             }
-            catch(exception& e)
+            catch(...)
             {
                 return 0;
             }
@@ -248,8 +250,7 @@ class TAG_Atom : public NBT_Tag {
             }
             else
             {
-                //throw new TypeMismatch(tagVal, t->getType());
-                throw new TypeMismatch; 
+                throw new TypeMismatch(tagVal, t->getType());
             }
         }
         

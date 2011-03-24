@@ -6,7 +6,7 @@
 
 NBT_Tag::NBT_Tag(NBT_StringHolder name, TagType tagType)
 {
-    _isParsed = false;
+    _isParsed = false; // this isn't really used in anything. . . .
     _name = name;
     _type = tagType;
 }
@@ -388,8 +388,7 @@ char * TAG_String::GetValue(NBT_Tag * t)
     }
     else
     {
-        //throw new TypeMismatch(TAGTYPE_STRING, t->getType()); 
-        throw new TypeMismatch;
+        throw new TypeMismatch(TAGTYPE_STRING, t->getType()); 
     }
 }
 
@@ -506,6 +505,7 @@ TAG_List::TAG_List(const char * name) : NBT_Tag(name, TAGTYPE_LIST)
 TAG_List::TAG_List(const char * name, TagType itemType) : NBT_Tag(name, TAGTYPE_LIST)
 {
     _isParsed = true;
+    _numberOfElements = 0;
     _itemType = itemType;
     return;
 };
@@ -621,14 +621,30 @@ NBT_Tag * TAG_List::get(NBT_INT i)
 
 void TAG_List::add(NBT_Tag * t)
 {
+    _numberOfElements++;
     items.push_back(t);
+}
+void TAG_List::clear(void)
+{
+    while(!items.empty())
+    {
+        delete items.back();
+        items.pop_back();
+    }
+    _numberOfElements = 0;
 }
 
 void TAG_List::remove(NBT_INT i)
 {
-    // delete from memory
-    
-    items.erase(items.begin() + i);
+    if(i < items.size())
+    {
+        // delete from memory too
+        NBT_Tag * delMe = items.at(i);
+        delete delMe;
+        
+        items.erase(items.begin() + i);
+        _numberOfElements--;
+    }
 }
 
 
@@ -681,8 +697,7 @@ NBT_BYTE * TAG_Byte_Array::GetValue(NBT_Tag * t)
     }
     else
     {
-        //throw new TypeMismatch(TAGTYPE_STRING, t->getType()); 
-        throw new TypeMismatch;
+        throw new TypeMismatch(TAGTYPE_STRING, t->getType());
     }
 }
 

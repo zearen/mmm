@@ -33,6 +33,15 @@
         char * value;
     };
     
+    typedef struct InventoryT
+    {
+        NBT_SHORT id;
+        NBT_SHORT Damage;
+        NBT_BYTE Count;
+        NBT_BYTE Slot;
+    };
+    
+
 typedef enum TagType {
     TAGTYPE_BYTE       = 1,
     TAGTYPE_BYTE_ARRAY = 7,
@@ -47,7 +56,7 @@ typedef enum TagType {
     TAGTYPE_STRING     = 8
     };
     
-
+    
 inline short int sizeOfTagType(TagType t) {
     short int r = 0;
     switch(t)
