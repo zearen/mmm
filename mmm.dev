@@ -1,7 +1,7 @@
 [Project]
 FileName=mmm.dev
 Name=mmm
-UnitCount=10
+UnitCount=18
 Type=1
 Ver=1
 ObjFiles=
@@ -50,16 +50,6 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit3]
-FileName=src\NBT.h
-CompileCpp=1
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit4]
 FileName=src\NBTDefines.h
 CompileCpp=1
 Folder=
@@ -69,8 +59,8 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit6]
-FileName=src\NBTTree.h
+[Unit4]
+FileName=src\NBTTree.cpp
 CompileCpp=1
 Folder=
 Compile=1
@@ -79,7 +69,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit7]
+[Unit6]
 FileName=src\util.cpp
 CompileCpp=1
 Folder=mmm
@@ -89,7 +79,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit8]
+[Unit7]
 FileName=src\util.h
 CompileCpp=1
 Folder=mmm
@@ -99,7 +89,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit9]
+[Unit8]
 FileName=src\Region.cpp
 CompileCpp=1
 Folder=mmm
@@ -109,7 +99,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit10]
+[Unit9]
 FileName=src\Region.h
 CompileCpp=1
 Folder=mmm
@@ -119,33 +109,25 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit13]
-FileName=src\zlib\memzip.o
-Folder=zlib
-Compile=0
-Link=0
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit15]
-FileName=src\zlib\stdafx.h
+[Unit10]
+FileName=src\player.cpp
 CompileCpp=1
-Folder=zlib
+Folder=
 Compile=1
 Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit16]
-FileName=src\zlib\stdafx.o
-Folder=zlib
-Compile=0
-Link=0
+[Unit13]
+FileName=src\MC_World.cpp
+Folder=
+Compile=1
+Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
+CompileCpp=1
 
 [VersionInfo]
 Major=0
@@ -165,10 +147,30 @@ ProductName=
 ProductVersion=
 AutoIncBuildNr=0
 
-[Unit11]
-FileName=src\zlib\stdafx.cpp
+[Unit5]
+FileName=src\NBTTree.h
 CompileCpp=1
-Folder=zlib
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit14]
+FileName=src\Block.cpp
+CompileCpp=1
+Folder=mmm
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit11]
+FileName=src\player.h
+CompileCpp=1
+Folder=
 Compile=1
 Link=1
 Priority=1000
@@ -176,17 +178,47 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit12]
-FileName=src\zlib\stdafx.h
+FileName=src\MC_World.h
 CompileCpp=1
-Folder=zlib
+Folder=
 Compile=1
 Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit5]
-FileName=src\NBTTree.cpp
+[Unit15]
+FileName=src\Block.h
+CompileCpp=1
+Folder=mmm
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit16]
+FileName=src\Entity.cpp
+CompileCpp=1
+Folder=mmm
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit17]
+FileName=src\Entity.h
+CompileCpp=1
+Folder=mmm
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit18]
+FileName=src\NBT.h
 CompileCpp=1
 Folder=
 Compile=1
