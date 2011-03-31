@@ -15,48 +15,56 @@ using namespace std;
 Player::Player() : Entity("")
 {
     // set default values
-    
+
 }
 
 Player::Player(TAG_Compound * t) : Entity("")
-{    
+{
     // load
     loadFromCompound(t);
 }
 
 Player::~Player()
 {
-    
+
 }
 
 void Player::loadFromCompound(TAG_Compound * root)
 {
+
+
+    cout << "before shit happens!" << endl;
+    NBT fuck (root);
+    fuck.displayToScreen();
+
     Entity::loadFromCompound(root);
-    
-    
-    
+
+    cout << "after shit happens!" << endl;
+    fuck.displayToScreen();
+
+
     _HurtTime = TAG_Short::TryGetValue(root->getChild("HurtTime"));
     _Health = TAG_Short::TryGetValue(root->getChild("Health"));
-    
+
     _SleepTimer = TAG_Short::TryGetValue(root->getChild("SleepTimer"));
-    
+
     _AttackTime = TAG_Short::TryGetValue(root->getChild("AttackTime"));
     _DeathTime = TAG_Short::TryGetValue(root->getChild("DeathTime"));
-    
-    
-    
+
+
+
     _Dimension = TAG_Int::TryGetValue(root->getChild("Dimension"));
-    
-    
+
+
     // Load inventory
-    
+
     inventory.clear();
-    
+
     TAG_List * invTag = (TAG_List*)(root->getChild("Inventory"));
     if(invTag != NULL)
     {
         NBT_INT size = invTag->size();
-        
+
         for(NBT_INT i = 0;i<size;i++)
         {
             TAG_Compound * invItem = (TAG_Compound*)invTag->get(i);
@@ -79,13 +87,13 @@ TAG_Compound * Player::construct()
 
 TAG_Compound * Player::construct(TAG_Compound * root)
 {
+
     Entity::construct(root);
-    
-    
+
     NBT_Tag * src;
     // Master atomic types
-    
-    
+
+
     // short HurtTime
     src = root->getChild("HurtTime");
     if(!src) {
@@ -94,7 +102,7 @@ TAG_Compound * Player::construct(TAG_Compound * root)
     } else {
         ((TAG_Short*)src)->setPayload(_HurtTime);
     }
-    
+
     // short Health
     src = root->getChild("Health");
     if(!src) {
@@ -103,8 +111,8 @@ TAG_Compound * Player::construct(TAG_Compound * root)
     } else {
         ((TAG_Short*)src)->setPayload(_Health);
     }
-    
-    
+
+
     // short sleeptimer
     src = root->getChild("SleepTimer");
     if(!src) {
@@ -113,7 +121,7 @@ TAG_Compound * Player::construct(TAG_Compound * root)
     } else {
         ((TAG_Short*)src)->setPayload(_SleepTimer);
     }
-    
+
     // short AttackTime
     src = root->getChild("AttackTime");
     if(!src) {
@@ -122,7 +130,7 @@ TAG_Compound * Player::construct(TAG_Compound * root)
     } else {
         ((TAG_Short*)src)->setPayload(_AttackTime);
     }
-    
+
     // short DeathTime
     src = root->getChild("DeathTime");
     if(!src) {
@@ -141,38 +149,30 @@ TAG_Compound * Player::construct(TAG_Compound * root)
         ((TAG_Int*)src)->setPayload(_Dimension);
     }
 
+    src = root->update(src = new TAG_List("Inventory",TAGTYPE_COMPOUND));
 
-    src = (TAG_List*)(root->getChild("Inventory"));
-    if(!src) {
-        src = new TAG_List("Inventory",TAGTYPE_COMPOUND);
-        root->add(src);
-    }
-    
-    
-    ((TAG_List*)src)->clear();
-    
     vector<InventoryT>::iterator pos = inventory.begin();
     int invSize = inventory.size();
-    
+
     for(int i=0;i<invSize;i++)
     {
         // create compound for me
-        
-        
+
+
         InventoryT me = inventory[i];
         // convert to tagCompound. . . .
-        TAG_Compound * invItem = new TAG_Compound();
+        TAG_Compound * invItem = new TAG_Compound;
         invItem->add(new TAG_Short("id", me.id));
         invItem->add(new TAG_Short("Damage", me.Damage));
         invItem->add(new TAG_Byte("Count", me.Count));
         invItem->add(new TAG_Byte("Slot", me.Slot));
-        
-        ((TAG_List*)src)->add(invItem); 
+
+        ((TAG_List*)src)->add(invItem);
     }
-    
-    
+
+
     return root;
-    
-    
+
+
 }
 

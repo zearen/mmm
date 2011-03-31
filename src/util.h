@@ -10,12 +10,12 @@ using namespace std;
 class Utilities
 {
       public:
-            
+
       static bool IsLittleEndian;
       static void DetectBigEndian(void);
-            
+
       static bool FileExists(string fileName);
-      
+
 };
 
 // Fix endian crap
@@ -27,29 +27,29 @@ E endianSwap(E val) {
         char c[sizeof(E)];
     } uVal;
     uVal.e = val;
-    
-    for(int i = 0; i < sizeof(E) >> 1; i++)
+
+    for(unsigned short int i = 0; i < sizeof(E) >> 1; i++)
        swap(uVal.c[i], uVal.c[sizeof(E) - i - 1]);
-    
+
     return uVal.e;
-}
+};
 
 class FieldNotFoundError : public exception {
-    
+
         virtual const char* what() const throw()
         {
           return "Field not found!";
         }
-        
+
 };
-    
+
 class NullException : public exception  {
-    
+
         virtual const char* what() const throw()
         {
           return "Something was null!";
         }
-        
+
 };
 
 class TypeMismatch : public exception  {
@@ -59,7 +59,7 @@ class TypeMismatch : public exception  {
     public:
         TypeMismatch();
         TypeMismatch(TagType exp, TagType gotted);
-        
+
         virtual const char* what() const throw()
         {
           return "Types did not agree!";
