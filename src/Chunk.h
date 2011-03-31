@@ -7,30 +7,46 @@
 #include "Entity.h"
 #include "TileEntity.h"
 
+template <E>
+class VectorHolder {
+    private:
+        vector<E> *vec;
+    public:
+        VectorHolder(*vector<E> v) {
+            vec = v;
+        }
+        E &operator[] (int index) {
+            return (*vec)[index];
+        }
+}
+
 class Chunk {
     private:
         // blocks[x][y][z]
-        vector<vector<vector<Block>>> blocks;
+        Block blocks[16][128][16];
         byte heightMap[16][16];
         vector<Entity*> entities;
         bool owEntities; // Overwrite flag
         vector<TileEntity*> tileEntities;
         bool owTileEntities;
-        NBT_Int xPos, yPos;
     public:
+        NBT_Int xPos, yPos;
+        
         Chunk();
         Chunk(TAG_Compound *root);
-        ~Chunk();
+        //~Chunk();
         void loadFromCompound(TAG_Compound *root);
-        vector<vector<Block>> &operator[](int x);
+        Block[][] operator[](int index);
         
-        void addEntity(Entity ent);
+        void addEntity(Entity *ent);
+        VectorHolder<Entity> getEntities();
         // Invalidates list
-        vector<Entity*> &getEntity();
+        void removeEntity(int index);
         
-        void addTileEntity(TileEntity tilEnt);
+        void addTileEntity(TileEntity *tilEnt);
+        VectorHolder<TileEntity> getTileEntities();
         // Invalidates list
-        vector<Entity*> filterEntity(const char * id);
+        void removeTileEntity(int index);
         
         TAG_Compound *construct();
         TAG_Compound *construct(TAG_Compound *root);
