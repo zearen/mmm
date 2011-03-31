@@ -27,7 +27,7 @@ class NBT_Tag
         NBT_Tag(TagType tagType);
         NBT_Tag(NBT_StringHolder name, TagType tagType);
         NBT_Tag(const char * name, TagType tagType);
-        
+
         ~NBT_Tag();
         bool isParsed(void);
         char * getName();
@@ -36,7 +36,7 @@ class NBT_Tag
         void setName(NBT_StringHolder name);
         TagType getType();
         bool isType(TagType tagType2);
-        
+
         void * getValue(NBT_Tag * t);
 };
 
@@ -46,51 +46,51 @@ class TAG_Compound : public NBT_Tag {
         deque<NBT_Tag*> fields;
         class FieldNotFound{};
         int getIndex(const char *name) throw (FieldNotFound);
-        
+
     public:
         TAG_Compound();
         TAG_Compound(const char * name);
         ~TAG_Compound();
-        
-        
+
+
         void add(NBT_Tag *newItem);
-        
+
         TAG_Compound * parseTag(NBT_BYTE ** data, bool named = true);
-        
+
         NBT_Tag *operator[] (const char * name);
         NBT_Tag *operator[] (NBT_INT index);
-        
-        
+
+
         NBT_Tag * getChild (const char * name);
         NBT_Tag * getChild (NBT_INT index);
-        
-        
+
+
         void remove(NBT_Tag *newItem);
         void remove(NBT_INT index);
-        
+
         NBT_Tag *update(NBT_Tag* &nbt);
-        
+
         NBT_INT size();
         char ** listTagNames();
-        
+
 };
 
 // NOTE: Must be above TAG_Atom because it's referenced in template
 
 class TAG_String : public NBT_Tag {
     private:
-        NBT_StringHolder payload;    
+        NBT_StringHolder payload;
     public:
         TAG_String();
         TAG_String(const char * name);
         TAG_String(const char * name, NBT_StringHolder value);
-        
+
         // Auto set name/value
         TAG_String(const char * Name, const char * value);
-        
+
         // Auto parsetag
         TAG_String(NBT_BYTE ** data, bool named = true);
-        
+
         ~TAG_String();
         static NBT_StringHolder Parse(NBT_BYTE ** data);
         TAG_String * parseTag(NBT_BYTE ** data, bool named = true);
@@ -101,7 +101,7 @@ class TAG_String : public NBT_Tag {
         static char * GetValue(NBT_Tag * t);
         static char * TryGetValue(NBT_Tag * t);
 
-        
+
 };
 
 
@@ -109,12 +109,12 @@ class TAG_Byte_Array : public NBT_Tag {
     private:
         NBT_INT _numberOfElements;
         NBT_BYTE * items;
-        
+
     public:
         TAG_Byte_Array();
         TAG_Byte_Array(const char * name);
         TAG_Byte_Array(const char * name, NBT_INT size, NBT_BYTE * items);
-        
+
         ~TAG_Byte_Array();
         NBT_BYTE operator [] (int index);
         NBT_INT size();
@@ -122,13 +122,13 @@ class TAG_Byte_Array : public NBT_Tag {
         TAG_Byte_Array * parseTag(NBT_BYTE ** data, bool named = true);
         NBT_BYTE * getArray();
         NBT_BYTE getByte(NBT_INT index);
-        
+
         void setByte (NBT_INT pos, NBT_BYTE val);
         void setBlock(NBT_INT start, NBT_INT len, const NBT_BYTE * newData);
-        
+
         static NBT_BYTE * GetValue(NBT_Tag * t);
         static NBT_BYTE * TryGetValue(NBT_Tag * t);
-        
+
 };
 
 class TAG_List : public NBT_Tag {
@@ -136,12 +136,12 @@ class TAG_List : public NBT_Tag {
         TagType _itemType;
         NBT_INT _numberOfElements;
         vector<NBT_Tag*> items;
-        
+
     public:
         TAG_List();
         TAG_List(const char * name);
         TAG_List(const char * name, TagType itemType);
-        
+
         ~TAG_List();
         NBT_Tag *operator [] (NBT_INT index);
         NBT_Tag * get(NBT_INT index);
@@ -151,10 +151,10 @@ class TAG_List : public NBT_Tag {
         NBT_INT size();
         TagType getItemType();
         static NBT_StringHolder Rebuild(TAG_List * t);
-        
+
         TAG_List * parseTag(NBT_BYTE ** data, bool named = true);
-        
-        
+
+
 
 };
 
@@ -165,25 +165,25 @@ class TAG_Atom : public NBT_Tag {
         E payload;
     protected:
     public:
-        
+
         TAG_Atom() : NBT_Tag(tagVal)
         {
-            return;            
+            return;
         }
-        
+
         TAG_Atom(E pl) : NBT_Tag(tagVal)
         {
             payload = pl;
-            return;            
+            return;
         }
-        
+
         TAG_Atom(const char * name, E pl) : NBT_Tag(name, tagVal)
         {
             _isParsed = true;
             payload = pl;
-            return;            
+            return;
         }
-        
+
         TAG_Atom<E,tagVal> * parseTag(NBT_BYTE ** data, bool named = true)
         {
              _isParsed = true;
@@ -200,12 +200,12 @@ class TAG_Atom : public NBT_Tag {
                 //data += getNameHolder().length + sizeof(NBT_SHORT);
             }
             // get payload
-            payload = Parse(data);            
+            payload = Parse(data);
             //data += sizeof(E);
             return this;
-            
+
         }
-        
+
         static E Parse(NBT_BYTE ** data)
         {
             E t = *( (E*)(*data) );
@@ -213,20 +213,20 @@ class TAG_Atom : public NBT_Tag {
             {
                 t = endianSwap<E>(t);
             }
-            
+
             // keep this
             (*data) += sizeof(E);
-            
+
             return t;
         }
-        
-        // 
+
+        //
         TAG_Atom(char* newName, E newPayload) {
             NBT_Tag(newName, tagVal);
             setPayload(newPayload);
         }
-        
-        
+
+
         static E TryGetValue(NBT_Tag * t)
         {
             try {
@@ -237,7 +237,7 @@ class TAG_Atom : public NBT_Tag {
                 return 0;
             }
         }
-        
+
         static E GetValue(NBT_Tag * t)
         {
             // Failed.. return 0??
@@ -245,8 +245,8 @@ class TAG_Atom : public NBT_Tag {
             {
                 throw new NullException;
             }
-            
-            
+
+
             if(t->getType() == tagVal)
             {
                 return ((TAG_Atom<E,tagVal>*)t)->getPayload();
@@ -256,41 +256,48 @@ class TAG_Atom : public NBT_Tag {
                 throw new TypeMismatch(tagVal, t->getType());
             }
         }
-        
-    
-        
+
+
+
         static NBT_StringHolder Rebuild(E payload, bool fixEndian = true)
         {
-            
-            if(Utilities::IsLittleEndian && fixEndian) 
+
+            if(Utilities::IsLittleEndian && fixEndian)
             {
                 payload = endianSwap<E>(payload);
             }
+
+            /*
             E* pay2 = new E;
             *pay2 = payload;
-            
+
             char *x = (char*)(pay2);
-            
+            */
+
             if(Utilities::IsLittleEndian)
             {
                 // move to proper index
                 //x += (sizeof(E)-1);
 
-                
+
             }
-            
+
             NBT_StringHolder n;
             n.length = sizeof(E);
-            n.value = x;
+            n.value = new char[sizeof(E) + 1];
+
+            // complicated to add a null terminator
+            *((E*)(n.value)) = payload;
+            *(n.value+n.length) = 0;
             return n;
-            
-            
+
+
         }
-            
+
         E getPayload() {
             return payload;
         }
-        
+
         void setPayload(E newPayload) {
           payload = newPayload;
         }

@@ -27,22 +27,22 @@
 // 64 bits, big endian
 #define NBT_LONG long long signed int
 
-    typedef struct NBT_StringHolder
+    struct NBT_StringHolder
     {
         NBT_SHORT length;
         char * value;
     };
-    
-    typedef struct InventoryT
+
+    struct InventoryT
     {
         NBT_SHORT id;
         NBT_SHORT Damage;
         NBT_BYTE Count;
         NBT_BYTE Slot;
     };
-    
 
-typedef enum TagType {
+
+enum TagType {
     TAGTYPE_BYTE       = 1,
     TAGTYPE_BYTE_ARRAY = 7,
     TAGTYPE_COMPOUND   = 10,
@@ -55,8 +55,8 @@ typedef enum TagType {
     TAGTYPE_SHORT      = 2,
     TAGTYPE_STRING     = 8
     };
-    
-    
+
+
 inline short int sizeOfTagType(TagType t) {
     short int r = 0;
     switch(t)
