@@ -381,29 +381,29 @@ TAG_Compound * TAG_Compound::parseTag(NBT_BYTE ** data, bool named)
 
 NBT_Tag *TAG_Compound::update(NBT_Tag* &nbt) {
     if (!nbt) throw;
-    NBT_Tag * old = getChild(nbt->getName());
-    if (old) {
-        if (old->getType() == TAGTYPE_COMPOUND) {
+    try {
+        int i = getIndex(nbt->getName());
+        if (fields[i]->getType() == TAGTYPE_COMPOUND) {
             TAG_Compound *nbtC = (TAG_Compound*) nbt;
             NBT_Tag * next;
             for (int i = 0; 
                 i < nbtC->fields.size(); i++) {
                 next = nbtC->fields[i];
-                ((TAG_Compound*)old)->update(next);
+                ((TAG_Compound*)fields[i])->update(next);
             }
         }
         else {
             
-            swap(nbt, old);
+            swap(nbt, fields[i]);
         }
         delete nbt;
+        return fields[i];
     }
-    else {
+    catch (FieldNotFound e) {
         add(nbt);
-        old = nbt;
         nbt = NULL;
+        return fields.back();
     }
-    return old;
 }
 
 //*************************
