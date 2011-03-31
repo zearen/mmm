@@ -10,11 +10,6 @@ using namespace std;
 #define R_ZLIB 2
 #endif
 
-#ifndef BYTE
-#define BYTE
-typedef unsigned char byte;
-#endif
-
 class FileNotOpenError {};
 class FileNotFoundError {};
 class ChunkOutOfRangeError {};
@@ -36,12 +31,12 @@ class Region {
             byte *data;
             chunk_t(short length=0, byte compression=2);
         };
-        
+
         // propogates file not found
         Region();
         Region(char *filename);
         ~Region();
-        
+
         void open(char *filename);
         void write(byte x, byte z, chunk_t chunk);
         void erase(byte x, byte z);

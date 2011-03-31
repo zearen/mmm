@@ -5,11 +5,11 @@
 class Block {
     private:
         // high bits are skylight, low bits are blocklicht
-        byte light
+        byte light;
         byte data;
     public:
         byte id;
-        
+
         Block(byte newId, byte skylight, byte blocklight, byte extra);
         void setSkyLight(byte light);
         byte getSkyLight();
@@ -17,5 +17,5 @@ class Block {
         byte getBlockLight();
         void setExtra(byte extra);
         byte getExtra();
-}
-#endif 
+};
+#endif
