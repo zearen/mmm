@@ -725,6 +725,24 @@ TAG_Byte_Array::TAG_Byte_Array() : NBT_Tag(TAGTYPE_BYTE_ARRAY)
     return;
 };
 
+TAG_Byte_Array::TAG_Byte_Array(const char * name) : NBT_Tag(TAGTYPE_BYTE_ARRAY)
+{
+    setName(name);
+    return;
+};
+
+TAG_Byte_Array::TAG_Byte_Array(const char * name, NBT_INT size, NBT_BYTE * items) : NBT_Tag(TAGTYPE_BYTE_ARRAY)
+{
+
+    setName(name);
+
+    this._numberOfElements = size;
+    this.items = items;
+
+    return;
+};
+
+
 TAG_Byte_Array::~TAG_Byte_Array()
 {
     delete [] items;
