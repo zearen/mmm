@@ -9,7 +9,8 @@ class Block {
         byte data;
     public:
         byte id;
-
+        
+        Block();
         Block(byte newId, byte skylight, byte blocklight, byte extra);
         void setSkyLight(byte light);
         byte getSkyLight();

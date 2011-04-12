@@ -1,5 +1,7 @@
 #include "Block.h"
 
+Block::Block();
+
 Block::Block(byte newId, byte skylight, byte blocklight, byte extra) {
     id = newId;
     light = (skylight << 4) & 0xF0 | blocklight & 0x0F;
